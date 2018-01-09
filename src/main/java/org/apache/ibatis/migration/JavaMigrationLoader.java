@@ -24,6 +24,8 @@ import java.util.Set;
 
 import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.io.ResolverUtil.Test;
+import org.apache.ibatis.migration.scripts.BootstrapScript;
+import org.apache.ibatis.migration.scripts.OnAbortScript;
 
 public class JavaMigrationLoader implements MigrationLoader {
 
@@ -125,6 +127,7 @@ public class JavaMigrationLoader implements MigrationLoader {
     }
   }
 
+  // Well, no wonder changing types didn't give an issue - this parameter is never used!
   private <T> ResolverUtil<T> getResolver(Class<T> type) {
     ResolverUtil<T> resolver = new ResolverUtil<T>();
     if (classLoader != null) {

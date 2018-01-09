@@ -31,6 +31,15 @@ public class Change implements Comparable<Change>, Cloneable {
     this.id = id;
   }
 
+  /**
+   * Used for functional immutability
+   * @param id the new id
+   * @param other previous properties
+   */
+  public Change(BigDecimal id, Change other) {
+    this(id,other.appliedTimestamp,other.description,other.filename);
+  }
+
   public Change(BigDecimal id, String appliedTimestamp, String description) {
     this.id = id;
     this.appliedTimestamp = appliedTimestamp;

@@ -13,7 +13,9 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.migration;
+package org.apache.ibatis.migration.scripts;
+
+import org.apache.ibatis.migration.SimpleScript;
 
 public interface BootstrapScript extends SimpleScript {
 }

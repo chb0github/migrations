@@ -68,6 +68,8 @@ public class Environment {
     SETTING_KEYS = Collections.unmodifiableList(list);
   }
 
+  private final String name;
+
   private final String timeZone;
   private final String delimiter;
   private final String scriptCharset;
@@ -97,6 +99,7 @@ public class Environment {
 
   public Environment(File file) {
     FileInputStream inputStream = null;
+    this.name = file.getName().replace(".properties","");
     try {
       inputStream = new FileInputStream(file);
       Properties prop = new Properties();
@@ -246,5 +249,9 @@ public class Environment {
 
   public Properties getVariables() {
     return variables;
+  }
+
+  public String getName() {
+    return name;
   }
 }

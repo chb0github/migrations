@@ -54,7 +54,7 @@ public class SqlHookScript implements HookScript {
   }
 
   @Override
-  public void execute(Map<String, Object> bindingMap) {
+  public Void execute(Map<String, Object> bindingMap) {
     HookContext context = (HookContext) bindingMap.get(MigrationHook.HOOK_CONTEXT);
     printStream.println(Util.horizontalLine("Applying SQL hook: " + scriptFile.getName(), 80));
 
@@ -79,5 +79,6 @@ public class SqlHookScript implements HookScript {
         // ignore
       }
     }
+    return null;
   }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  *    Copyright 2010-2017 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ public final class UpOperation extends DatabaseOperation {
   public UpOperation(Integer steps) {
     super();
     this.steps = steps;
-    if (steps != null && steps.intValue() < 1) {
+    if (steps != null && steps < 1) {
       throw new IllegalArgumentException("step must be positive number or null.");
     }
   }
@@ -88,7 +88,7 @@ public final class UpOperation extends DatabaseOperation {
             }
             println(printStream, Util.horizontalLine("Applying: " + change.getFilename(), 80));
             scriptReader = migrationsLoader.getScriptReader(change, false);
-            runner.runScript(scriptReader);
+            runner.runScript(scriptReader, connectionProvider.getConnection());
             insertChangelog(change, connectionProvider, option);
             println(printStream);
             if (hook != null) {

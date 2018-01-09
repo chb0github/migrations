@@ -32,7 +32,7 @@ public class NoOpHookScript implements HookScript {
   }
 
   @Override
-  public void execute(Map<String, Object> bindingMap) {
-
+  public Void execute(Map<String, Object> bindingMap) {
+    return null;
   }
 }

@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2018 the original author or authors.
+ *    Copyright 2010-2017 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,15 +13,9 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.migration.runtime_migration.scripts_java;
+package org.apache.ibatis.migration.scripts;
 
-import org.apache.ibatis.migration.scripts.BootstrapScript;
+import org.apache.ibatis.migration.SimpleScript;
 
-public class Bootstrap implements BootstrapScript {
-
-  @Override
-  public String getScript() {
-    return "CREATE TABLE bootstrap_table (ID INTEGER NOT NULL, NAME VARCHAR(16));";
-  }
-
+public interface OnAbortScript extends SimpleScript {
 }

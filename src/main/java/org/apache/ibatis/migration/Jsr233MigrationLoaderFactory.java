@@ -13,15 +13,17 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.migration.runtime_migration.scripts_java;
+package org.apache.ibatis.migration;
 
-import org.apache.ibatis.migration.scripts.BootstrapScript;
+import org.apache.ibatis.migration.options.SelectedPaths;
 
-public class Bootstrap implements BootstrapScript {
+/**
+ * @author cbongiorno on 12/31/17.
+ */
+public class Jsr233MigrationLoaderFactory implements FileMigrationLoaderFactory {
 
   @Override
-  public String getScript() {
-    return "CREATE TABLE bootstrap_table (ID INTEGER NOT NULL, NAME VARCHAR(16));";
+  public MigrationLoader create(SelectedPaths paths, Environment environment) {
+    return new Jsr233MigrationLoader(paths, environment);
   }
-
 }

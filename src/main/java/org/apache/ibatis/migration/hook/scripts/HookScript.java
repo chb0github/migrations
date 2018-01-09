@@ -15,10 +15,11 @@
  */
 package org.apache.ibatis.migration.hook.scripts;
 
-import java.util.Map;
+import org.apache.ibatis.migration.scripts.Script;
 
-public interface HookScript {
-
-  void execute(Map<String, Object> bindingMap);
+/**
+ * @author cbongiorno on 1/4/18.
+ */
+public interface HookScript extends Script<Void> {
 
 }

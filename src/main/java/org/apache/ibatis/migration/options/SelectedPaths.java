@@ -26,6 +26,17 @@ public class SelectedPaths {
   private File driverPath;
   private File hookPath;
 
+  public SelectedPaths() {
+  }
+
+  public SelectedPaths(File basePath) {
+    this.basePath = basePath;
+  }
+
+  public SelectedPaths(String basePath) {
+    this.basePath = new File(basePath);
+  }
+
   public File getBasePath() {
     return basePath;
   }
@@ -64,5 +75,10 @@ public class SelectedPaths {
 
   public void setHookPath(File aHookPath) {
     hookPath = aHookPath;
+  }
+
+  @Override
+  public String toString() {
+    return basePath.getAbsolutePath();
   }
 }

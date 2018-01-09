@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.ibatis.migration.options.SelectedPaths;
 import org.apache.ibatis.migration.utils.Util;
 
 public class FileMigrationLoader implements MigrationLoader {
@@ -32,6 +33,10 @@ public class FileMigrationLoader implements MigrationLoader {
   protected final String charset;
 
   protected final Properties variables;
+
+  public FileMigrationLoader(SelectedPaths paths, Environment env) {
+    this(paths.getScriptPath(), env.getScriptCharset(), env.getVariables());
+  }
 
   public FileMigrationLoader(File scriptsDir, String charset, Properties variables) {
     super();

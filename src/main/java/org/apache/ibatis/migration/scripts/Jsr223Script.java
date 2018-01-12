@@ -97,7 +97,7 @@ public class Jsr223Script<T> implements Script<T> {
     T result = null;
     ScriptEngineManager manager = new ScriptEngineManager();
     ScriptEngine engine = manager.getEngineByName(language);
-    if(engine == null)
+    if (engine == null)
       throw new MigrationException("Unsupported language: " + language);
 
     // bind global/local variables defined in the environment file

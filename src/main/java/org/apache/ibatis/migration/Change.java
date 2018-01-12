@@ -37,7 +37,7 @@ public class Change implements Comparable<Change>, Cloneable {
    * @param other previous properties
    */
   public Change(BigDecimal id, Change other) {
-    this(id,other.appliedTimestamp,other.description,other.filename);
+    this(id, other.appliedTimestamp, other.description, other.filename);
   }
 
   public Change(BigDecimal id, String appliedTimestamp, String description) {

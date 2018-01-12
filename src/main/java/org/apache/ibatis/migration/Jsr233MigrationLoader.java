@@ -77,7 +77,7 @@ public class Jsr233MigrationLoader implements MigrationLoader {
 
       if ("classpath".equals(streamType)) {
         is = Jsr233MigrationLoader.class.getClassLoader().getResourceAsStream(arg);
-        if(is == null)
+        if (is == null)
           throw new MigrationException("Couldn't find classpath resource " + arg);
       } else {
         if ("file".equals(streamType)) {

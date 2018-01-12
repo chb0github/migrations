@@ -99,7 +99,7 @@ public class Environment {
 
   public Environment(File file) {
     FileInputStream inputStream = null;
-    this.name = file.getName().replace(".properties","");
+    this.name = file.getName().replace(".properties", "");
     try {
       inputStream = new FileInputStream(file);
       Properties prop = new Properties();

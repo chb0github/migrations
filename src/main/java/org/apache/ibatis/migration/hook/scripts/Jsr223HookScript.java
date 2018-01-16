@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.util.Properties;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.options.SelectedPaths;
@@ -32,16 +33,12 @@ public class Jsr223HookScript extends Jsr223Script<Void> implements HookScript {
 
   public Jsr223HookScript(String language, File scriptFile, String charset, String[] options, SelectedPaths paths,
       Properties variables, PrintStream printStream) {
-    super(language, null, charset, options, paths, variables, printStream);
+    super(language, charset, options, paths, variables, printStream);
     this.scriptFile = scriptFile;
-    try {
-      super.scriptReader = new InputStreamReader(new FileInputStream(scriptFile));
-    } catch (FileNotFoundException e) {
-      throw new MigrationException("Failed to read JSR-223 hook script file.", e);
-    }
   }
 
-  protected void before() {
+  protected Reader getReader() throws FileNotFoundException {
     printStream.println(Util.horizontalLine("Applying JSR-223 hook : " + scriptFile.getName(), 80));
+    return new InputStreamReader(new FileInputStream(scriptFile));
   }
 }

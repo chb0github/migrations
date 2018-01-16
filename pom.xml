@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-       Copyright 2010-2017 the original author or authors.
+       Copyright 2010-2018 the original author or authors.
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -90,6 +90,12 @@
       <version>2.3.5</version> <!-- Version 2.4.0 requires jdk8 -->
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.19</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -100,6 +106,12 @@
         <includes>
           <include>LICENSE</include>
           <include>NOTICE</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/src/test/resources</directory>
+        <includes>
+          <include>**/*</include>
         </includes>
       </resource>
       <resource>

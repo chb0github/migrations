@@ -1,5 +1,5 @@
-/*
- *    Copyright 2010-2017 the original author or authors.
+/**
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ public final class UpOperation extends DatabaseOperation {
             }
             println(printStream, Util.horizontalLine("Applying: " + change.getFilename(), 80));
             scriptReader = migrationsLoader.getScriptReader(change, false);
-            runner.runScript(scriptReader, connectionProvider.getConnection());
+            runner.runScript(scriptReader);
             insertChangelog(change, connectionProvider, option);
             println(printStream);
             if (hook != null) {

@@ -1,4 +1,4 @@
-/**
+/*
  *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +13,6 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.migration.scripts;
-
-import org.apache.ibatis.migration.SimpleScript;
-
-public interface OnAbortScript extends SimpleScript {
-}
+var props = env.getVariables()
+var id = new java.math.BigDecimal(java.lang.Double.valueOf(props["testid"]))
+new java.io.StringReader("select '" + id + "' as id, '" + paths.getBasePath() + "' as bootstrap")

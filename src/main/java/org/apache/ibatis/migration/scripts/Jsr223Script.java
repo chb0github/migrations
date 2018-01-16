@@ -15,6 +15,10 @@
  */
 package org.apache.ibatis.migration.scripts;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FilterReader;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -49,28 +53,25 @@ public class Jsr223Script<T> implements Script<T> {
   protected final SelectedPaths paths;
   protected final PrintStream printStream;
 
-  protected Reader scriptReader;
-
   protected String functionName;
   protected String objectName;
   protected String methodName;
   protected List<String> args = new ArrayList<String>();
   protected Map<String, String> localVars = new HashMap<String, String>();
 
-  public Jsr223Script(String language, Reader scriptReader, String charset, List<String> options, SelectedPaths paths,
+  public Jsr223Script(String language, String charset, List<String> options, SelectedPaths paths,
       Properties variables) {
-    this(language, scriptReader, charset, options.toArray(new String[0]), paths, variables, System.out);
+    this(language, charset, options.toArray(new String[0]), paths, variables, System.out);
   }
 
-  public Jsr223Script(String language, Reader scriptReader, String charset, String[] options, SelectedPaths paths,
-      Properties variables, PrintStream printStream) {
+  public Jsr223Script(String language, String charset, String[] options, SelectedPaths paths, Properties variables,
+      PrintStream printStream) {
     super();
     this.language = language;
     this.charset = charset;
     this.paths = paths;
     this.variables = variables;
     this.printStream = printStream;
-    this.scriptReader = scriptReader;
     for (String option : options) {
       int sep = option.indexOf('=');
       if (sep > -1) {
@@ -107,7 +108,7 @@ public class Jsr223Script<T> implements Script<T> {
     bindings.put(MIGRATION_PATHS, paths);
     bindings.putAll(bindingMap);
     try {
-      before();
+      Reader scriptReader = getReader();
       result = (T) engine.eval(scriptReader, bindings);
       if (functionName != null || (objectName != null && methodName != null)) {
         Invocable invocable = (Invocable) engine;
@@ -129,9 +130,12 @@ public class Jsr223Script<T> implements Script<T> {
     } catch (ScriptException e) {
       printStream.println(e.getMessage());
       throw new MigrationException("Failed to execute JSR-223 script.", e);
+    } catch (IOException e) {
+      throw new MigrationException("Failed to read JSR-223 hook script file.", e);
     } catch (NoSuchMethodException e) {
       throw new MigrationException("Method or function not found in JSR-223 hook script: " + functionName, e);
     }
+
     return result;
   }
 
@@ -141,7 +145,17 @@ public class Jsr223Script<T> implements Script<T> {
     }
   }
 
-  protected void before() {
+  protected Reader getReader() throws FileNotFoundException {
+    return new Reader() {
+      @Override
+      public int read(char[] cbuf, int off, int len) throws IOException {
+        return -1;
+      }
 
+      @Override
+      public void close() throws IOException {
+
+      }
+    };
   }
 }

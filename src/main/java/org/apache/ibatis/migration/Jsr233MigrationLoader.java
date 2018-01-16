@@ -15,11 +15,14 @@
  */
 package org.apache.ibatis.migration;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -73,28 +76,19 @@ public class Jsr233MigrationLoader implements MigrationLoader {
       String scriptLang = segments.get(0);
       String streamType = segments.get(1); // classpath: or file:
       String arg = segments.get(2);
-      InputStream is = null;
 
-      if ("classpath".equals(streamType)) {
-        is = Jsr233MigrationLoader.class.getClassLoader().getResourceAsStream(arg);
-        if (is == null)
-          throw new MigrationException("Couldn't find classpath resource " + arg);
-      } else {
-        if ("file".equals(streamType)) {
-          try {
-            is = new FileInputStream(arg);
-          } catch (FileNotFoundException e) {
-            throw new MigrationException("Unable to load script file " + arg);
-          }
-        } else {
-          throw new MigrationException("Can only load 'file:' or 'classpath:' got " + arg);
-        }
-      }
-      Reader r = new InputStreamReader(is);
       List<String> options = segments.subList(2, segments.size() - 1);
-      result = new Jsr223Script<T>(scriptLang, r, charset, options, paths, props);
+      result = new Jsr223MigrationScript<T>(scriptLang, charset, options, props, streamType, arg);
     }
     return result;
+  }
+
+  public Environment getEnvironment() {
+    return env;
+  }
+
+  public SelectedPaths getPaths() {
+    return new SelectedPaths(paths);
   }
 
   @Override
@@ -111,8 +105,9 @@ public class Jsr233MigrationLoader implements MigrationLoader {
       params.put("change", change);
       params.put("undo", undo);
       result = changeReaderScript.execute(params);
-    } else
+    } else {
       result = original.getScriptReader(change, undo);
+    }
 
     return result;
   }
@@ -127,4 +122,56 @@ public class Jsr233MigrationLoader implements MigrationLoader {
     return abortScript != null ? abortScript.execute(defParams) : original.getOnAbortReader();
   }
 
+  private class Jsr223MigrationScript<T> extends Jsr223Script<T> {
+
+    private final String streamType;
+    private final String arg;
+    private final File f;
+
+    public Jsr223MigrationScript(String scriptLang, String charset, List<String> options, Properties props,
+        String streamType, String arg) {
+      super(scriptLang, charset, options, Jsr233MigrationLoader.this.paths, props);
+
+      verify(streamType, arg);
+      this.streamType = streamType;
+      this.arg = arg;
+      this.f = toFile(streamType, arg);
+    }
+
+    private void verify(String streamType, String arg) {
+      if (!streamType.equals("classpath") && !streamType.equals("file")) {
+        throw new MigrationException("Can only load 'file:' or 'classpath:' got " + streamType);
+      }
+      if ("classpath".equals(streamType)) {
+        URL resource = Jsr233MigrationLoader.class.getResource(arg);
+        if (resource == null) {
+          throw new MigrationException("Couldn't find classpath resource " + arg);
+        }
+      }
+      if ("file".equals(streamType) && !new File(arg).exists()) {
+        throw new MigrationException("Unable to load script file " + arg);
+      }
+    }
+
+    private File toFile(String streamType, String arg) {
+      File result = null;
+      if ("classpath".equals(streamType)) {
+        URL resource = Jsr233MigrationLoader.class.getResource(arg);
+        result = new File(resource.getFile());
+      }
+      if ("file".equals(streamType)) {
+        result = new File(arg);
+      }
+      return result;
+    }
+
+    @Override
+    protected Reader getReader() {
+      try {
+        return new InputStreamReader(new FileInputStream(f));
+      } catch (FileNotFoundException e) {
+        throw new MigrationException("Unable to load script file " + f);
+      }
+    }
+  }
 }

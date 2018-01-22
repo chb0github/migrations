@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,6 +69,8 @@ public class Environment {
     SETTING_KEYS = Collections.unmodifiableList(list);
   }
 
+  private final String name;
+
   private final String timeZone;
   private final String delimiter;
   private final String scriptCharset;
@@ -95,60 +98,68 @@ public class Environment {
 
   private final Properties variables = new Properties();
 
-  public Environment(File file) {
-    FileInputStream inputStream = null;
-    try {
-      inputStream = new FileInputStream(file);
-      Properties prop = new Properties();
-      prop.load(inputStream);
+  public Environment(String name, Properties prop) {
+    this.name = name;
+    this.timeZone = prop.getProperty(SETTING_KEY.time_zone.name(), "GMT+0:00");
+    this.delimiter = prop.getProperty(SETTING_KEY.delimiter.name(), ";");
+    this.scriptCharset = prop.getProperty(SETTING_KEY.script_char_set.name(), Charset.defaultCharset().name());
+    this.fullLineDelimiter = Boolean.valueOf(prop.getProperty(SETTING_KEY.full_line_delimiter.name()));
+    this.sendFullScript = Boolean.valueOf(prop.getProperty(SETTING_KEY.send_full_script.name()));
+    this.autoCommit = Boolean.valueOf(prop.getProperty(SETTING_KEY.auto_commit.name()));
+    this.removeCrs = Boolean.valueOf(prop.getProperty(SETTING_KEY.remove_crs.name()));
+    this.ignoreWarnings = Boolean.valueOf(prop.getProperty(SETTING_KEY.ignore_warnings.name(), "true"));
 
-      this.timeZone = prop.getProperty(SETTING_KEY.time_zone.name(), "GMT+0:00");
-      this.delimiter = prop.getProperty(SETTING_KEY.delimiter.name(), ";");
-      this.scriptCharset = prop.getProperty(SETTING_KEY.script_char_set.name(), Charset.defaultCharset().name());
-      this.fullLineDelimiter = Boolean.valueOf(prop.getProperty(SETTING_KEY.full_line_delimiter.name()));
-      this.sendFullScript = Boolean.valueOf(prop.getProperty(SETTING_KEY.send_full_script.name()));
-      this.autoCommit = Boolean.valueOf(prop.getProperty(SETTING_KEY.auto_commit.name()));
-      this.removeCrs = Boolean.valueOf(prop.getProperty(SETTING_KEY.remove_crs.name()));
-      this.ignoreWarnings = Boolean.valueOf(prop.getProperty(SETTING_KEY.ignore_warnings.name(), "true"));
+    this.driverPath = prop.getProperty(SETTING_KEY.driver_path.name());
+    this.driver = prop.getProperty(SETTING_KEY.driver.name());
+    this.url = prop.getProperty(SETTING_KEY.url.name());
+    this.username = prop.getProperty(SETTING_KEY.username.name());
+    this.password = prop.getProperty(SETTING_KEY.password.name());
 
-      this.driverPath = prop.getProperty(SETTING_KEY.driver_path.name());
-      this.driver = prop.getProperty(SETTING_KEY.driver.name());
-      this.url = prop.getProperty(SETTING_KEY.url.name());
-      this.username = prop.getProperty(SETTING_KEY.username.name());
-      this.password = prop.getProperty(SETTING_KEY.password.name());
+    this.hookBeforeNew = prop.getProperty(SETTING_KEY.hook_before_new.name());
+    this.hookAfterNew = prop.getProperty(SETTING_KEY.hook_after_new.name());
 
-      this.hookBeforeNew = prop.getProperty(SETTING_KEY.hook_before_new.name());
-      this.hookAfterNew = prop.getProperty(SETTING_KEY.hook_after_new.name());
+    this.hookBeforeEachUp = prop.getProperty(SETTING_KEY.hook_before_each_up.name());
+    this.hookAfterEachUp = prop.getProperty(SETTING_KEY.hook_after_each_up.name());
+    this.hookAfterUp = prop.getProperty(SETTING_KEY.hook_after_up.name());
+    this.hookBeforeDown = prop.getProperty(SETTING_KEY.hook_before_down.name());
+    this.hookBeforeEachDown = prop.getProperty(SETTING_KEY.hook_before_each_down.name());
+    this.hookAfterEachDown = prop.getProperty(SETTING_KEY.hook_after_each_down.name());
+    this.hookAfterDown = prop.getProperty(SETTING_KEY.hook_after_down.name());
 
-      this.hookBeforeEachUp = prop.getProperty(SETTING_KEY.hook_before_each_up.name());
-      this.hookAfterEachUp = prop.getProperty(SETTING_KEY.hook_after_each_up.name());
-      this.hookAfterUp = prop.getProperty(SETTING_KEY.hook_after_up.name());
-      this.hookBeforeDown = prop.getProperty(SETTING_KEY.hook_before_down.name());
-      this.hookBeforeEachDown = prop.getProperty(SETTING_KEY.hook_before_each_down.name());
-      this.hookAfterEachDown = prop.getProperty(SETTING_KEY.hook_after_each_down.name());
-      this.hookAfterDown = prop.getProperty(SETTING_KEY.hook_after_down.name());
-
-      this.hookBeforeUp = prop.getProperty(SETTING_KEY.hook_before_up.name());
-      // User defined variables.
-      Set<Entry<Object, Object>> entries = prop.entrySet();
-      for (Entry<Object, Object> entry : entries) {
-        String key = (String) entry.getKey();
-        if (!SETTING_KEYS.contains(key)) {
-          variables.put(key, entry.getValue());
-        }
+    this.hookBeforeUp = prop.getProperty(SETTING_KEY.hook_before_up.name());
+    // User defined variables.
+    Set<Entry<Object, Object>> entries = prop.entrySet();
+    for (Entry<Object, Object> entry : entries) {
+      String key = (String) entry.getKey();
+      if (!SETTING_KEYS.contains(key)) {
+        variables.put(key, entry.getValue());
       }
-    } catch (FileNotFoundException e) {
-      throw new MigrationException("Environment file missing: " + file.getAbsolutePath());
+    }
+  }
+
+  public Environment(String name, InputStream propStream) {
+    this(name, catchProps(propStream));
+  }
+
+  public Environment(File file) {
+    this(file.getName().replace(".properties", ""), catchFile(file));
+  }
+
+  private static Properties catchProps(InputStream propStream) {
+    try {
+      Properties prop = new Properties();
+      prop.load(propStream);
+      return prop;
     } catch (IOException e) {
       throw new MigrationException("Error loading environment properties.  Cause: " + e, e);
-    } finally {
-      if (inputStream != null) {
-        try {
-          inputStream.close();
-        } catch (IOException e) {
-          // ignore
-        }
-      }
+    }
+  }
+
+  private static FileInputStream catchFile(File f) {
+    try {
+      return new FileInputStream(f);
+    } catch (FileNotFoundException e) {
+      throw new MigrationException("Environment file missing: " + e.getMessage(), e);
     }
   }
 
@@ -246,5 +257,9 @@ public class Environment {
 
   public Properties getVariables() {
     return variables;
+  }
+
+  public String getName() {
+    return name;
   }
 }

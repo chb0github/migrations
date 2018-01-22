@@ -13,15 +13,23 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.migration.runtime_migration.scripts_java;
+package org.apache.ibatis.migration.scripts;
 
-import org.apache.ibatis.migration.scripts.BootstrapScript;
+import java.util.Map;
 
-public class Bootstrap implements BootstrapScript {
+/**
+ * @author cbongiorno on 1/3/18.
+ */
+public class NoOpScript<T> implements Script<T> {
 
-  @Override
-  public String getScript() {
-    return "CREATE TABLE bootstrap_table (ID INTEGER NOT NULL, NAME VARCHAR(16));";
+  private static NoOpScript instance = new NoOpScript();
+
+  public static <T> NoOpScript<T> getInstance() {
+    return instance;
   }
 
+  @Override
+  public T execute(Map<String, Object> bindingMap) {
+    return null;
+  }
 }

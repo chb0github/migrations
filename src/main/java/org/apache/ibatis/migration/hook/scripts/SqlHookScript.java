@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class SqlHookScript implements HookScript {
   }
 
   @Override
-  public void execute(Map<String, Object> bindingMap) {
+  public Void execute(Map<String, Object> bindingMap) {
     HookContext context = (HookContext) bindingMap.get(MigrationHook.HOOK_CONTEXT);
     printStream.println(Util.horizontalLine("Applying SQL hook: " + scriptFile.getName(), 80));
 
@@ -79,5 +79,6 @@ public class SqlHookScript implements HookScript {
         // ignore
       }
     }
+    return null;
   }
 }

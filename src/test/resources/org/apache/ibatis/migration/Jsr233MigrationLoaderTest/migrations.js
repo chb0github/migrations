@@ -1,4 +1,4 @@
-/**
+/*
  *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,15 +13,6 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.migration.runtime_migration.scripts_java;
-
-import org.apache.ibatis.migration.scripts.BootstrapScript;
-
-public class Bootstrap implements BootstrapScript {
-
-  @Override
-  public String getScript() {
-    return "CREATE TABLE bootstrap_table (ID INTEGER NOT NULL, NAME VARCHAR(16));";
-  }
-
-}
+var props = env.getVariables()
+var id = new java.math.BigDecimal(java.lang.Double.valueOf(props["testid"]))
+java.util.Arrays.asList(new org.apache.ibatis.migration.Change(id,null,"Jsr233MigrationLoaderTest",paths.getBasePath()))

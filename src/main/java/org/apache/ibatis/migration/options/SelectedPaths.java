@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -25,6 +25,25 @@ public class SelectedPaths {
   private File scriptPath;
   private File driverPath;
   private File hookPath;
+
+  public SelectedPaths() {
+  }
+
+  public SelectedPaths(SelectedPaths other) {
+    this.basePath = other.basePath;
+    this.envPath = other.envPath;
+    this.scriptPath = other.envPath;
+    this.driverPath = other.driverPath;
+    this.hookPath = other.hookPath;
+  }
+
+  public SelectedPaths(File basePath) {
+    this.basePath = basePath;
+  }
+
+  public SelectedPaths(String basePath) {
+    this.basePath = new File(basePath);
+  }
 
   public File getBasePath() {
     return basePath;
@@ -64,5 +83,10 @@ public class SelectedPaths {
 
   public void setHookPath(File aHookPath) {
     hookPath = aHookPath;
+  }
+
+  @Override
+  public String toString() {
+    return basePath.getAbsolutePath();
   }
 }

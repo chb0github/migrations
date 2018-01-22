@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.util.Set;
 
 import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.io.ResolverUtil.Test;
+import org.apache.ibatis.migration.scripts.BootstrapScript;
+import org.apache.ibatis.migration.scripts.OnAbortScript;
 
 public class JavaMigrationLoader implements MigrationLoader {
 
@@ -125,6 +127,7 @@ public class JavaMigrationLoader implements MigrationLoader {
     }
   }
 
+  // Well, no wonder changing types didn't give an issue - this parameter is never used!
   private <T> ResolverUtil<T> getResolver(Class<T> type) {
     ResolverUtil<T> resolver = new ResolverUtil<T>();
     if (classLoader != null) {

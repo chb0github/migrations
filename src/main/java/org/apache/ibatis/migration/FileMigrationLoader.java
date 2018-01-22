@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.ibatis.migration.options.SelectedPaths;
 import org.apache.ibatis.migration.utils.Util;
 
 public class FileMigrationLoader implements MigrationLoader {
@@ -32,6 +33,10 @@ public class FileMigrationLoader implements MigrationLoader {
   protected final String charset;
 
   protected final Properties variables;
+
+  public FileMigrationLoader(SelectedPaths paths, Environment env) {
+    this(paths.getScriptPath(), env.getScriptCharset(), env.getVariables());
+  }
 
   public FileMigrationLoader(File scriptsDir, String charset, Properties variables) {
     super();

@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
  */
 package org.apache.ibatis.migration.hook.scripts;
 
-import java.util.Map;
+import org.apache.ibatis.migration.scripts.Script;
 
-public interface HookScript {
-
-  void execute(Map<String, Object> bindingMap);
+/**
+ * @author cbongiorno on 1/4/18.
+ */
+public interface HookScript extends Script<Void> {
 
 }

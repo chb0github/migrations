@@ -45,12 +45,10 @@ public final class NewCommand extends BaseCommand {
       throw new MigrationException("No description specified for new migration.");
     }
 
-
     Hook hook = createNewMigrationHook();
 
     Properties variables = getVariables();
     variables.setProperty("description", params[0]);
-
 
     Map<String, Object> hookBindings = createBinding(params);
     {

@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -35,32 +35,33 @@ public final class ScriptCommand extends BaseCommand {
   }
 
   @Override
-  public void execute(String... sparams) {
+  public void execute(String... args) {
     try {
-      if (sparams == null || sparams.length < 1 || sparams[0] == null) {
+
+      if (args == null || args.length < 1 || args[0] == null) {
         throw new MigrationException("The script command requires a range of versions from v1 - v2.");
       }
-      StringTokenizer parser = new StringTokenizer(sparams[0]);
-      int tokenCount = parser.countTokens();
+
       boolean scriptPending = false;
       boolean scriptPendingUndo = false;
 
-      String firstToken = parser.nextToken();
-
-      if (tokenCount == 1 && firstToken.equals("pending")) {
+      if (args[0].equals("pending")) {
         scriptPending = true;
-      } else if (tokenCount == 1 && firstToken.equals("pending_undo")) {
+      } else if (args[0].equals("pending_undo")) {
         scriptPendingUndo = true;
-      } else if (!scriptPending && !scriptPendingUndo && tokenCount != 2) {
-        throw new MigrationException("The script command requires a range of versions from v1 - v2.");
       }
 
-      BigDecimal v1 = (scriptPending || scriptPendingUndo) ? null : new BigDecimal(firstToken);
-      BigDecimal v2 = (scriptPending || scriptPendingUndo) ? null : new BigDecimal(parser.nextToken());
+      BigDecimal v1 = null;
+      BigDecimal v2 = null;
+      boolean undo = scriptPendingUndo;
 
-      boolean undo;
-      undo = scriptPendingUndo;
       if (!scriptPending && !scriptPendingUndo) {
+
+        if (args.length < 2 || args[1] == null) {
+          throw new MigrationException("The script command requires a range of versions from v1 - v2.");
+        }
+        v1 = new BigDecimal(args[0]);
+        v2 = new BigDecimal(args[1]);
         int comparison = v1.compareTo(v2);
         if (comparison == 0) {
           throw new MigrationException(

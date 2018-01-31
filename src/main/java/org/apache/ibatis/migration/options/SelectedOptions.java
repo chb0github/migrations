@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package org.apache.ibatis.migration.options;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class SelectedOptions {
   private SelectedPaths paths = new SelectedPaths();
   private String environment = "development";
@@ -23,7 +26,7 @@ public class SelectedOptions {
   private boolean force;
   private boolean trace;
   private String command;
-  private String params;
+  private List<String> params = new LinkedList<String>();
   private boolean help;
   private boolean quiet;
   private boolean color;
@@ -96,12 +99,12 @@ public class SelectedOptions {
     command = aCommand;
   }
 
-  public String getParams() {
-    return params;
+  public String[] getParams() {
+    return params.toArray(new String[0]);
   }
 
-  public void setParams(String aParams) {
-    params = aParams;
+  public void addParam(String aParams) {
+    params.add(aParams);
   }
 
   public boolean needsHelp() {

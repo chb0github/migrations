@@ -222,7 +222,7 @@ public abstract class BaseCommand implements Command {
     copyTemplate(new FileReader(templateFile), toFile, variables);
   }
 
-  protected static void copyTemplate(Reader templateReader, File toFile, Properties variables) throws IOException {
+  public static void copyTemplate(Reader templateReader, File toFile, Properties variables) throws IOException {
     LineNumberReader reader = new LineNumberReader(templateReader);
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(toFile));

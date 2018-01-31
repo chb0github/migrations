@@ -132,36 +132,30 @@ public class Jsr233MigrationLoader implements MigrationLoader {
         String streamType, String arg) {
       super(scriptLang, charset, options, Jsr233MigrationLoader.this.paths, props);
 
-      verify(streamType, arg);
+      this.f = toFile(streamType, arg);
       this.streamType = streamType;
       this.arg = arg;
-      this.f = toFile(streamType, arg);
-    }
-
-    private void verify(String streamType, String arg) {
-      if (!streamType.equals("classpath") && !streamType.equals("file")) {
-        throw new MigrationException("Can only load 'file:' or 'classpath:' got " + streamType);
-      }
-      if ("classpath".equals(streamType)) {
-        URL resource = Jsr233MigrationLoader.class.getResource(arg);
-        if (resource == null) {
-          throw new MigrationException("Couldn't find classpath resource " + arg);
-        }
-      }
-      if ("file".equals(streamType) && !new File(arg).exists()) {
-        throw new MigrationException("Unable to load script file " + arg);
-      }
     }
 
     private File toFile(String streamType, String arg) {
       File result = null;
+      if (!streamType.equals("classpath") && !streamType.equals("file")) {
+        throw new MigrationException("Can only load 'file:' or 'classpath:' got " + streamType);
+      }
       if ("classpath".equals(streamType)) {
-        URL resource = Jsr233MigrationLoader.class.getResource(arg);
+
+        URL resource = ClassLoader.getSystemResource(arg);
+        if (resource == null) {
+          throw new MigrationException("Couldn't find classpath resource " + arg);
+        }
         result = new File(resource.getFile());
       }
       if ("file".equals(streamType)) {
         result = new File(arg);
       }
+      if (result != null && !result.exists())
+        throw new MigrationException("Unable to load script file " + arg);
+
       return result;
     }
 

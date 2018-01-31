@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package org.apache.ibatis.migration.options;
 
-import org.hamcrest.core.StringContains;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.Test;
 
 import java.io.File;
@@ -85,9 +86,10 @@ public class OptionsParserTest {
 
     final SelectedOptions options = parse(new String[] { command, ignoredCommand, anotherIgnored });
 
+    List<String> params = Arrays.asList(options.getParams());
     assertThat(options.getCommand(), equalTo(command));
-    assertThat(options.getParams(), StringContains.containsString(ignoredCommand));
-    assertThat(options.getParams(), StringContains.containsString(anotherIgnored));
+    assertTrue(params.contains(ignoredCommand));
+    assertTrue(params.contains(anotherIgnored));
   }
 
   private String valuedOption(Options option, String aValue) {

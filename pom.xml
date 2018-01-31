@@ -109,7 +109,7 @@
         </includes>
       </resource>
       <resource>
-        <directory>${project.basedir}/src/test/resources</directory>
+        <directory>${project.basedir}/src/main/resources</directory>
         <includes>
           <include>**/*</include>
         </includes>
@@ -127,6 +127,12 @@
         <excludes>
           <exclude>**/*.java</exclude>
         </excludes>
+      </testResource>
+      <testResource>
+        <directory>${project.basedir}/src/test/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
       </testResource>
     </testResources>
     <pluginManagement>

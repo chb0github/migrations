@@ -41,14 +41,12 @@ public final class NewCommand extends BaseCommand {
 
   @Override
   public void execute(String... params) {
-    if (paramsEmpty(params)) {
-      throw new MigrationException("No description specified for new migration.");
-    }
 
     Hook hook = createNewMigrationHook();
 
     Properties variables = getVariables();
-    variables.setProperty("description", params[0]);
+    if (params.length > 0)
+      variables.setProperty("description", params[0]);
 
     Map<String, Object> hookBindings = createBinding(params);
     {
@@ -107,9 +105,15 @@ public final class NewCommand extends BaseCommand {
 
   private Map<String, Object> createBinding(String[] params) {
     String nextId = getNextIDAsString();
-    String description = params[0];
-
-    String proposedFile = nextId + "_" + description.replace(' ', '_') + ".sql";
+    // for backward compatibility with other scripts, if no description is supplied use an empty string
+    String description = "";
+    String proposedFile;
+    if (params.length > 0) {
+      description = params[0].replace(' ', '_');
+      proposedFile = String.format("%s_%s.sql", nextId, description);
+    } else {
+      proposedFile = String.format("%s.sql", nextId);
+    }
 
     Map<String, Object> hookBindings = new HashMap<String, Object>();
     BigDecimal id = new BigDecimal(nextId);

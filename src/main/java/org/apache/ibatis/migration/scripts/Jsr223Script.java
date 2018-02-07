@@ -125,16 +125,13 @@ public class Jsr223Script<T> implements Script<T> {
       throw new MigrationException(
           "Script engine '" + engine.getClass().getName() + "' does not support function/method invocation.", e);
 
+    } catch (ScriptException e) {
+      printStream.println(e.getMessage());
+      throw new MigrationException("Failed to execute JSR-223 script.", e);
     } catch (IOException e) {
       throw new MigrationException("Failed to read JSR-223 hook script file.", e);
     } catch (NoSuchMethodException e) {
       throw new MigrationException("Method or function not found in JSR-223 hook script: " + functionName, e);
-    } catch (Throwable e) {
-      while (e.getCause() != null) {
-        printStream.println(e.getMessage());
-        e = e.getCause();
-      }
-      throw new MigrationException("Failed to execute JSR-223 script.", e);
     }
 
     return result;

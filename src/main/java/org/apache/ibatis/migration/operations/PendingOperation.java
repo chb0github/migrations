@@ -88,10 +88,9 @@ public final class PendingOperation extends DatabaseOperation {
         }
         runner.closeConnection();
       }
-    } catch (Throwable e) {
-      while (e instanceof MigrationException) {
-        e = e.getCause();
-      }
+    } catch (MigrationException e) {
+      throw e;
+    } catch (Exception e) {
       throw new MigrationException("Error executing command.  Cause: " + e, e);
     }
   }

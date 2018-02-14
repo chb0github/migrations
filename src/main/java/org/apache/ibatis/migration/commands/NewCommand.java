@@ -120,7 +120,7 @@ public final class NewCommand extends BaseCommand {
 
     File f = new File(String.format("%s%s%s", paths.getScriptPath(), File.separator, proposedFile));
     Change change = new Change(id, null, description, f.getAbsolutePath());
-    Properties props = environmentProperties();
+    Properties props = getVariables();
 
     hookBindings.put("change", change);
     hookBindings.put("paths", paths);

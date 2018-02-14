@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public final class BootstrapOperation extends DatabaseOperation {
       } else {
         Reader bootstrapReader = migrationsLoader.getBootstrapReader();
         if (bootstrapReader != null) {
-          println(printStream, Util.horizontalLine("Applying: bootstrap.sql", 80));
+          System.out.println(Util.horizontalLine("Bootstrapping", 80));
           ScriptRunner runner = getScriptRunner(connectionProvider, option, printStream);
           try {
             runner.runScript(bootstrapReader);
@@ -58,7 +58,7 @@ public final class BootstrapOperation extends DatabaseOperation {
           }
           println(printStream);
         } else {
-          println(printStream, "Error, could not run bootstrap.sql.  The file does not exist.");
+          System.err.println("Error, could not bootstrap. No input provided");
         }
       }
       return this;

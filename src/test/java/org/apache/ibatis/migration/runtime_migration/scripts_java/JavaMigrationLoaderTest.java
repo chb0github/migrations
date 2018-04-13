@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -30,39 +30,36 @@ public class JavaMigrationLoaderTest {
 
   @Test
   public void testGetMigrations() throws Exception {
-    JavaMigrationLoader loader = createMigrationLoader();
+    JavaMigrationLoader loader = new JavaMigrationLoader(this.getClass().getPackage().getName());
     List<Change> migrations = loader.getMigrations();
     assertEquals(3, migrations.size());
   }
 
   @Test
   public void testGetScriptReader() throws Exception {
-    JavaMigrationLoader loader = createMigrationLoader();
+    JavaMigrationLoader loader = new JavaMigrationLoader(this.getClass().getPackage().getName());
     Change change = new Change();
     change.setFilename("org.apache.ibatis.migration.runtime_migration.scripts_java.V002_CreateFirstTable");
-    Reader reader = loader.getScriptReader(change, false);
+    Reader reader = loader.getScriptReader(change);
     Writer writer = new StringWriter();
     int c;
     while ((c = reader.read()) != -1) {
       writer.write(c);
     }
-    assertTrue(writer.toString().indexOf("CREATE TABLE first_table (ID INTEGER NOT NULL, NAME VARCHAR(16));") > -1);
+    assertTrue(writer.toString().contains("CREATE TABLE first_table (ID INTEGER NOT NULL, NAME VARCHAR(16));"));
   }
 
   @Test
   public void testGetBootstrapReader() throws Exception {
-    JavaMigrationLoader loader = createMigrationLoader();
-    Reader reader = loader.getBootstrapReader();
+    JavaMigrationLoader loader = new JavaMigrationLoader(this.getClass().getPackage().getName());
+    List<Reader> readers = loader.getBootstrapReaders();
     Writer writer = new StringWriter();
+    Reader reader = readers.get(0);
     int c;
     while ((c = reader.read()) != -1) {
       writer.write(c);
     }
-    assertTrue(writer.toString().indexOf("CREATE TABLE bootstrap_table (ID INTEGER NOT NULL, NAME VARCHAR(16));") > -1);
+    assertTrue(writer.toString().contains("CREATE TABLE bootstrap_table (ID INTEGER NOT NULL, NAME VARCHAR(16));"));
   }
 
-  protected JavaMigrationLoader createMigrationLoader() {
-    JavaMigrationLoader loader = new JavaMigrationLoader("org.apache.ibatis.migration.runtime_migration.scripts_java");
-    return loader;
-  }
 }

@@ -15,11 +15,13 @@
  */
 package org.apache.ibatis.migration;
 
+import org.apache.ibatis.migration.options.SelectedPaths;
+import org.apache.ibatis.migration.scripts.Jsr223Script;
+import org.apache.ibatis.migration.scripts.Script;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
@@ -28,9 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import org.apache.ibatis.migration.options.SelectedPaths;
-import org.apache.ibatis.migration.scripts.Jsr223Script;
-import org.apache.ibatis.migration.scripts.Script;
 
 /**
  * @author cbongiorno on 1/3/18.
@@ -38,8 +37,9 @@ import org.apache.ibatis.migration.scripts.Script;
 public class Jsr233MigrationLoader implements MigrationLoader {
 
   private final Script<List<Change>> migrationScript;
-  private final Script<Reader> changeReaderScript;
-  private final Script<Reader> bootstrap;
+  private final Script<Reader> chScript;
+  private final Script<Reader> rbScript;
+  private final Script<List<Reader>> bsScript;
   private final Script<Reader> abortScript;
   private final FileMigrationLoader original;
   private final Environment env;
@@ -55,8 +55,9 @@ public class Jsr233MigrationLoader implements MigrationLoader {
     this.original = new FileMigrationLoader(paths, env);
 
     this.migrationScript = toScript("migration_script");
-    this.changeReaderScript = toScript("change_script");
-    this.bootstrap = toScript("bootstrap_script");
+    this.chScript = toScript("change_script");
+    this.bsScript = toScript("bootstrap_script");
+    this.rbScript = toScript("rollback_script");
     this.abortScript = toScript("abort_script");
 
   }
@@ -71,7 +72,8 @@ public class Jsr233MigrationLoader implements MigrationLoader {
       List<String> segments = Arrays.asList(settings.split(":"));
       if (segments.size() < 3) {
         throw new MigrationException(
-            "Error creating a HookScript. Hook setting must contain 'language' and 'file name' separated by ':' (e.g. SQL:post-up.sql).");
+            "Error creating a HookScript. Hook setting must contain 'language' and 'file name' separated "
+                + "by ':' (e.g. SQL:post-up.sql).");
       }
       String scriptLang = segments.get(0);
       String streamType = segments.get(1); // classpath: or file:
@@ -97,29 +99,30 @@ public class Jsr233MigrationLoader implements MigrationLoader {
   }
 
   @Override
-  public Reader getScriptReader(Change change, boolean undo) {
+  public Reader getScriptReader(Change change) {
+    return chScript != null ? chScript.execute(getChangeMap(change)) : original.getScriptReader(change);
 
-    Reader result;
-    if (changeReaderScript != null) {
-      Map<String, Object> params = new HashMap<String, Object>(defParams);
-      params.put("change", change);
-      params.put("undo", undo);
-      result = changeReaderScript.execute(params);
-    } else {
-      result = original.getScriptReader(change, undo);
-    }
-
-    return result;
   }
 
   @Override
-  public Reader getBootstrapReader() {
-    return bootstrap != null ? bootstrap.execute(defParams) : original.getBootstrapReader();
+  public Reader getRollbackReader(Change change) {
+    return rbScript != null ? rbScript.execute(getChangeMap(change)) : original.getRollbackReader(change);
   }
 
   @Override
-  public Reader getOnAbortReader() {
-    return abortScript != null ? abortScript.execute(defParams) : original.getOnAbortReader();
+  public List<Reader> getBootstrapReaders() {
+    return bsScript != null ? bsScript.execute(defParams) : original.getBootstrapReaders();
+  }
+
+  @Override
+  public Reader getOnAbortReader(Change change) {
+    return abortScript != null ? abortScript.execute(getChangeMap(change)) : original.getOnAbortReader(change);
+  }
+
+  Map<String, Object> getChangeMap(Change change) {
+    Map<String, Object> params = new HashMap<String, Object>(defParams);
+    params.put("change", change);
+    return params;
   }
 
   private class Jsr223MigrationScript<T> extends Jsr223Script<T> {
@@ -153,8 +156,9 @@ public class Jsr233MigrationLoader implements MigrationLoader {
       if ("file".equals(streamType)) {
         result = new File(arg);
       }
-      if (result != null && !result.exists())
+      if (result != null && !result.exists()) {
         throw new MigrationException("Unable to load script file " + arg);
+      }
 
       return result;
     }

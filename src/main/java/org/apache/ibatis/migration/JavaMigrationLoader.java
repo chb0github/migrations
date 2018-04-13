@@ -15,23 +15,25 @@
  */
 package org.apache.ibatis.migration;
 
-import java.io.Reader;
-import java.io.StringReader;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.io.ResolverUtil.Test;
 import org.apache.ibatis.migration.scripts.BootstrapScript;
 import org.apache.ibatis.migration.scripts.OnAbortScript;
+
+import java.io.Reader;
+import java.io.StringReader;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class JavaMigrationLoader implements MigrationLoader {
 
   private String[] packageNames;
 
   private ClassLoader classLoader;
+  private final ResolverUtil<MigrationScript> resolver = getResolver(MigrationScript.class);
 
   public JavaMigrationLoader(String... packageNames) {
     this(null, packageNames);
@@ -72,8 +74,16 @@ public class JavaMigrationLoader implements MigrationLoader {
   }
 
   @Override
-  public Reader getScriptReader(Change change, boolean undo) {
-    ResolverUtil<MigrationScript> resolver = getResolver(MigrationScript.class);
+  public Reader getScriptReader(Change change) {
+    return getReader(change, false);
+  }
+
+  @Override
+  public Reader getRollbackReader(Change change) {
+    return getReader(change, true);
+  }
+
+  private Reader getReader(Change change, boolean undo) {
     final String className = change.getFilename();
     for (String pkg : packageNames) {
       resolver.find(new Test() {
@@ -99,12 +109,12 @@ public class JavaMigrationLoader implements MigrationLoader {
   }
 
   @Override
-  public Reader getBootstrapReader() {
-    return getSoleScriptReader(BootstrapScript.class);
+  public List<Reader> getBootstrapReaders() {
+    return Collections.singletonList(getSoleScriptReader(BootstrapScript.class));
   }
 
   @Override
-  public Reader getOnAbortReader() {
+  public Reader getOnAbortReader(Change change) {
     return getSoleScriptReader(OnAbortScript.class);
   }
 
@@ -123,7 +133,7 @@ public class JavaMigrationLoader implements MigrationLoader {
       T script = clazz.newInstance();
       return new StringReader(script.getScript());
     } catch (Exception e) {
-      throw new MigrationException("Could not instanciate script class: " + clazz.getName(), e);
+      throw new MigrationException("Could not instantiate script class: " + clazz.getName(), e);
     }
   }
 

@@ -21,6 +21,7 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -90,22 +91,31 @@ public class FileMigrationLoader implements MigrationLoader {
   }
 
   @Override
-  public Reader getScriptReader(Change change, boolean undo) {
+  public Reader getScriptReader(Change change) {
     try {
-      return new MigrationReader(Util.file(scriptsDir, change.getFilename()), charset, undo, variables);
+      return new MigrationReader(Util.file(scriptsDir, change.getFilename()), charset, false, variables);
     } catch (IOException e) {
       throw new MigrationException("Error reading " + change.getFilename(), e);
     }
   }
 
   @Override
-  public Reader getBootstrapReader() {
-    String fileName = "bootstrap.sql";
-    return getSoleScriptReader(fileName);
+  public Reader getRollbackReader(Change change) {
+    try {
+      return new MigrationReader(Util.file(scriptsDir, change.getFilename()), charset, true, variables);
+    } catch (IOException e) {
+      throw new MigrationException("Error reading " + change.getFilename(), e);
+    }
   }
 
   @Override
-  public Reader getOnAbortReader() {
+  public List<Reader> getBootstrapReaders() {
+    String fileName = "bootstrap.sql";
+    return Collections.singletonList(getSoleScriptReader(fileName));
+  }
+
+  @Override
+  public Reader getOnAbortReader(Change change) {
     String fileName = "onabort.sql";
     return getSoleScriptReader(fileName);
   }

@@ -75,8 +75,12 @@ public final class UpOperation extends DatabaseOperation {
 
       Reader scriptReader = null;
       Reader onAbortScriptReader = null;
+
+      Change currentChange = null;
+
       try {
         for (Change change : migrations) {
+          currentChange = change;
           if (lastChange == null || change.getId().compareTo(lastChange.getId()) > 0) {
             if (stepCount == 0 && hook != null) {
               hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connectionProvider, runner, null));
@@ -87,7 +91,7 @@ public final class UpOperation extends DatabaseOperation {
               hook.beforeEach(hookBindings);
             }
             System.out.println(Util.horizontalLine("Applying: " + change.getFilename(), 80));
-            scriptReader = migrationsLoader.getScriptReader(change, false);
+            scriptReader = migrationsLoader.getScriptReader(change);
             runner.runScript(scriptReader);
             insertChangelog(change, connectionProvider, option);
             println(printStream);
@@ -107,10 +111,10 @@ public final class UpOperation extends DatabaseOperation {
         }
         return this;
       } catch (RuntimeSqlException e) {
-        onAbortScriptReader = migrationsLoader.getOnAbortReader();
+        onAbortScriptReader = migrationsLoader.getOnAbortReader(currentChange);
         if (onAbortScriptReader != null) {
           println(printStream);
-          println(printStream, Util.horizontalLine("Executing onabort.sql script.", 80));
+          System.out.println(Util.horizontalLine("Aborting: " + onAbortScriptReader, 80));
           runner.runScript(onAbortScriptReader);
           println(printStream);
         }

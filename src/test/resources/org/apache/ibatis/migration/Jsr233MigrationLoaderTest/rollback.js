@@ -13,4 +13,4 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-new java.io.StringReader("select '" + change.id + "' as id, '" + paths.getBasePath() + "' as abort")
+new java.io.StringReader("select '" + change.id + "' as id, '" + paths.getBasePath() + "' as change")

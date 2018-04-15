@@ -15,4 +15,5 @@
  */
 var props = env.getVariables()
 var id = new java.math.BigDecimal(java.lang.Double.valueOf(props["testid"]))
-new java.io.StringReader("select '" + id + "' as id, '" + paths.getBasePath() + "' as bootstrap")
+java.util.Arrays.asList(new java.io.StringReader("select '" + id + "' as id, '" + paths.getBasePath() + "' as" +
+    " bootstrap"))

@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.apache.ibatis.migration.runtime_migration;
 
+import org.apache.ibatis.migration.MigrationException;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
@@ -84,12 +85,11 @@ public class RuntimeMigrationTest {
     assertEquals("0", runQuery(connectionProvider, "select count(*) from bootstrap_table"));
   }
 
-  @Test
+  @Test(expected = MigrationException.class)
   public void shouldIgnoreBootstrapIfChangelogExists() throws Exception {
     new UpOperation(1).operate(connectionProvider, migrationsLoader, dbOption, new PrintStream(out));
 
     new BootstrapOperation().operate(connectionProvider, migrationsLoader, dbOption, new PrintStream(out));
-    assertTableDoesNotExist(connectionProvider, "bootstrap_table");
   }
 
   @Test

@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -27,19 +27,24 @@ public interface MigrationLoader {
 
   /**
    * @param change identifies the migration to read.
-   * @param undo whether the caller requests UNDO SQL script or not.
    * @return A {@link Reader} of the specified SQL script.
    */
-  Reader getScriptReader(Change change, boolean undo);
+  Reader getScriptReader(Change change);
+
+  /**
+   * @param change identifies the migration requiring rollback
+   * @return A {@link Reader} of the specified SQL script.
+   */
+  Reader getRollbackReader(Change change);
 
   /**
    * @return A {@link Reader} of the bootstrap SQL script.
    */
-  Reader getBootstrapReader();
+  List<Reader> getBootstrapReaders();
 
   /**
    * @return A {@link Reader} of the onabort SQL script.
    */
-  Reader getOnAbortReader();
+  Reader getOnAbortReader(Change change);
 
 }

@@ -72,7 +72,7 @@ public class Jsr233MigrationLoaderTest {
   public void getScriptReaderFromCp() throws Exception {
     Jsr233MigrationLoader loader = mkloader("classpath");
 
-    Reader reader = loader.getScriptReader(change, false);
+    Reader reader = loader.getScriptReader(change);
     String actual = new BufferedReader(reader).readLine();
     String expected = String.format("select '%s' as id, '%s' as change", this.change.getId(),
         loader.getPaths().getBasePath().getCanonicalPath());
@@ -82,8 +82,8 @@ public class Jsr233MigrationLoaderTest {
   @Test
   public void getBootstrapReaderFromCp() throws Exception {
     Jsr233MigrationLoader loader = mkloader("classpath");
-    Reader reader = loader.getBootstrapReader();
-    String actual = new BufferedReader(reader).readLine();
+    List<Reader> reader = loader.getBootstrapReaders();
+    String actual = new BufferedReader(reader.get(0)).readLine();
     String expected = String.format("select '%s' as id, '%s' as bootstrap", this.change.getId(),
         loader.getPaths().getBasePath().getCanonicalPath());
     assertEquals(expected, actual);
@@ -93,7 +93,7 @@ public class Jsr233MigrationLoaderTest {
   public void getOnAbortReaderFromCp() throws Exception {
     Jsr233MigrationLoader loader = mkloader("classpath");
 
-    Reader reader = loader.getOnAbortReader();
+    Reader reader = loader.getOnAbortReader(this.change);
     String actual = new BufferedReader(reader).readLine();
     String expected = String.format("select '%s' as id, '%s' as abort", this.change.getId(),
         loader.getPaths().getBasePath().getCanonicalPath());
@@ -111,7 +111,7 @@ public class Jsr233MigrationLoaderTest {
   @Test
   public void getScriptReaderFromFile() throws Exception {
     Jsr233MigrationLoader loader = mkloader("file");
-    Reader reader = loader.getScriptReader(change, false);
+    Reader reader = loader.getScriptReader(change);
     String actual = new BufferedReader(reader).readLine();
     String expected = String.format("select '%s' as id, '%s' as change", this.change.getId(),
         loader.getPaths().getBasePath().getCanonicalPath());
@@ -122,8 +122,8 @@ public class Jsr233MigrationLoaderTest {
   public void getBootstrapReaderFromFile() throws Exception {
     Jsr233MigrationLoader loader = mkloader("file");
 
-    Reader reader = loader.getBootstrapReader();
-    String actual = new BufferedReader(reader).readLine();
+    List<Reader> reader = loader.getBootstrapReaders();
+    String actual = new BufferedReader(reader.get(0)).readLine();
     String expected = String.format("select '%s' as id, '%s' as bootstrap", this.change.getId(),
         loader.getPaths().getBasePath().getCanonicalPath());
     assertEquals(expected, actual);
@@ -132,7 +132,7 @@ public class Jsr233MigrationLoaderTest {
   @Test
   public void getOnAbortReaderFromFile() throws Exception {
     Jsr233MigrationLoader loader = mkloader("file");
-    Reader reader = loader.getOnAbortReader();
+    Reader reader = loader.getOnAbortReader(this.change);
     String actual = new BufferedReader(reader).readLine();
     String expected = String.format("select '%s' as id, '%s' as abort", this.change.getId(),
         loader.getPaths().getBasePath().getCanonicalPath());
@@ -152,7 +152,7 @@ public class Jsr233MigrationLoaderTest {
   public void getScriptReaderNoScript() throws Exception {
     Jsr233MigrationLoader loader = mkloader("default");
     Change c = new Change(BigDecimal.ONE, null, "change", "00001_change.sql");
-    Reader reader = loader.getScriptReader(c, false);
+    Reader reader = loader.getScriptReader(c);
     String actual = new CommentStrippingReader(reader).readLine();
     String expected = String.format("select '%s' as id;", c.getId());
     assertEquals(expected, actual);
@@ -162,8 +162,8 @@ public class Jsr233MigrationLoaderTest {
   public void getBootstrapReaderNoScript() throws Exception {
     Jsr233MigrationLoader loader = mkloader("default");
 
-    Reader reader = loader.getBootstrapReader();
-    String actual = new CommentStrippingReader(reader).readLine();
+    List<Reader> readers = loader.getBootstrapReaders();
+    String actual = new CommentStrippingReader(readers.get(0)).readLine();
     String expected = "select 'bootstrap' as id from bootstrap;";
     assertEquals(expected, actual);
   }
@@ -171,7 +171,7 @@ public class Jsr233MigrationLoaderTest {
   @Test
   public void getOnAbortReaderNoScript() throws Exception {
     Jsr233MigrationLoader loader = mkloader("default");
-    Reader reader = loader.getOnAbortReader();
+    Reader reader = loader.getOnAbortReader(this.change);
     String actual = new CommentStrippingReader(reader).readLine();
     String expected = "select 'onabort' as id from onabort;";
     assertEquals(expected, actual);

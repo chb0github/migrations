@@ -13,6 +13,4 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-var props = env.getVariables()
-var id = new java.math.BigDecimal(java.lang.Double.valueOf(props["testid"]))
-new java.io.StringReader("select '" + id + "' as id, '" + paths.getBasePath() + "' as change")
+new java.io.StringReader("select '" + change.id + "' as id, '" + paths.getBasePath() + "' as" + " change")

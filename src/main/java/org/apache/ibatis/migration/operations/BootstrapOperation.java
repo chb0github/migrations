@@ -15,15 +15,17 @@
  */
 package org.apache.ibatis.migration.operations;
 
-import java.io.PrintStream;
-import java.io.Reader;
-
+import static java.lang.System.out;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.migration.ConnectionProvider;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
 import org.apache.ibatis.migration.utils.Util;
+import static org.apache.ibatis.migration.utils.Util.horizontalLine;
+
+import java.io.PrintStream;
+import java.io.Reader;
 
 public final class BootstrapOperation extends DatabaseOperation {
   private final boolean force;
@@ -39,31 +41,22 @@ public final class BootstrapOperation extends DatabaseOperation {
 
   public BootstrapOperation operate(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
       DatabaseOperationOption option, PrintStream printStream) {
-    try {
-      if (option == null) {
-        option = new DatabaseOperationOption();
-      }
-      if (changelogExists(connectionProvider, option) && !force) {
-        println(printStream,
-            "For your safety, the bootstrap SQL script will only run before migrations are applied (i.e. before the changelog exists).  If you're certain, you can run it using the --force option.");
-      } else {
-        Reader bootstrapReader = migrationsLoader.getBootstrapReader();
-        if (bootstrapReader != null) {
-          System.out.println(Util.horizontalLine("Bootstrapping", 80));
-          ScriptRunner runner = getScriptRunner(connectionProvider, option, printStream);
-          try {
-            runner.runScript(bootstrapReader);
-          } finally {
-            runner.closeConnection();
-          }
-          println(printStream);
-        } else {
-          System.err.println("Error, could not bootstrap. No input provided");
-        }
-      }
-      return this;
-    } catch (Exception e) {
-      throw new MigrationException("Error running bootstrapper.  Cause: " + e, e);
+    if (option == null) {
+      option = new DatabaseOperationOption();
     }
+    if (changelogExists(connectionProvider, option) && !force) {
+      throw new MigrationException(
+          "For your safety, the bootstrapping will only run before migrations are applied (i.e. "
+              + "before the changelog exists).  If you're certain, you can run it " + "using the --force option.");
+    }
+    ScriptRunner runner = getScriptRunner(connectionProvider, option, printStream);
+
+    for (Reader bootstrapReader : migrationsLoader.getBootstrapReaders()) {
+      out.println(horizontalLine("Bootstrapping: " + bootstrapReader, 80));
+      runner.runScript(bootstrapReader);
+    }
+    runner.closeConnection();
+
+    return this;
   }
 }

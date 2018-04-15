@@ -65,7 +65,7 @@ public final class PendingOperation extends DatabaseOperation {
             hook.beforeEach(hookBindings);
           }
           println(printStream, Util.horizontalLine("Applying: " + change.getFilename(), 80));
-          scriptReader = migrationsLoader.getScriptReader(change, false);
+          scriptReader = migrationsLoader.getScriptReader(change);
           runner.runScript(scriptReader);
           insertChangelog(change, connectionProvider, option);
           println(printStream);

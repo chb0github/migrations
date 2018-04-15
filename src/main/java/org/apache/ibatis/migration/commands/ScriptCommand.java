@@ -20,10 +20,10 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import org.apache.ibatis.migration.Change;
 import org.apache.ibatis.migration.MigrationException;
+import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.operations.DatabaseOperation;
 import org.apache.ibatis.migration.operations.StatusOperation;
 import org.apache.ibatis.migration.options.SelectedOptions;
@@ -70,9 +70,10 @@ public final class ScriptCommand extends BaseCommand {
         undo = comparison > 0;
       }
 
+      MigrationLoader loader = getMigrationLoader();
       List<Change> migrations = (scriptPending || scriptPendingUndo) ? new StatusOperation()
-          .operate(getConnectionProvider(), getMigrationLoader(), getDatabaseOperationOption(), null).getCurrentStatus()
-          : getMigrationLoader().getMigrations();
+          .operate(getConnectionProvider(), loader, getDatabaseOperationOption(), null).getCurrentStatus()
+          : loader.getMigrations();
       Collections.sort(migrations);
       if (undo) {
         Collections.reverse(migrations);
@@ -80,7 +81,8 @@ public final class ScriptCommand extends BaseCommand {
       for (Change change : migrations) {
         if (shouldRun(change, v1, v2, scriptPending || scriptPendingUndo)) {
           printStream.println("-- " + change.getFilename());
-          Reader migrationReader = getMigrationLoader().getScriptReader(change, undo);
+
+          Reader migrationReader = undo ? loader.getRollbackReader(change) : loader.getScriptReader(change);
           char[] cbuf = new char[1024];
           int l;
           while ((l = migrationReader.read(cbuf)) == cbuf.length) {

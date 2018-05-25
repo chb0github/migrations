@@ -21,8 +21,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.ibatis.io.Resources;
@@ -115,18 +113,12 @@ public final class NewCommand extends BaseCommand {
       proposedFile = String.format("%s.sql", nextId);
     }
 
-    Map<String, Object> hookBindings = new HashMap<String, Object>();
     BigDecimal id = new BigDecimal(nextId);
 
     File f = new File(String.format("%s%s%s", paths.getScriptPath(), File.separator, proposedFile));
     Change change = new Change(id, null, description, f.getAbsolutePath());
-    Properties props = getVariables();
 
-    hookBindings.put("change", change);
-    hookBindings.put("paths", paths);
-    hookBindings.put("environment", props);
-    hookBindings.put("args", Arrays.asList(params));
-    return hookBindings;
+    return baseBindings(change, params);
   }
 
 }

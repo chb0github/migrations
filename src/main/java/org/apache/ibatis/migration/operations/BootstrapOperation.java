@@ -15,6 +15,7 @@
  */
 package org.apache.ibatis.migration.operations;
 
+import static java.lang.System.err;
 import static java.lang.System.out;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.migration.ConnectionProvider;
@@ -23,9 +24,11 @@ import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
 import org.apache.ibatis.migration.utils.Util;
 import static org.apache.ibatis.migration.utils.Util.horizontalLine;
+import sun.font.ScriptRun;
 
 import java.io.PrintStream;
 import java.io.Reader;
+import java.util.Collection;
 
 public final class BootstrapOperation extends DatabaseOperation {
   private final boolean force;
@@ -44,19 +47,25 @@ public final class BootstrapOperation extends DatabaseOperation {
     if (option == null) {
       option = new DatabaseOperationOption();
     }
-    if (changelogExists(connectionProvider, option) && !force) {
-      throw new MigrationException(
-          "For your safety, the bootstrapping will only run before migrations are applied (i.e. "
-              + "before the changelog exists).  If you're certain, you can run it " + "using the --force option.");
+    if (changelogExists(connectionProvider, option)) {
+      if (force) {
+        bootstrap(migrationsLoader, getScriptRunner(connectionProvider, option, printStream));
+      } else {
+        printStream.println("For your safety, the bootstrapping will only run before migrations are applied "
+            + "(i.e. before the changelog exists).  If you're certain, you can run it " + "using the --force option.");
+      }
+    } else {
+      bootstrap(migrationsLoader, getScriptRunner(connectionProvider, option, printStream));
     }
-    ScriptRunner runner = getScriptRunner(connectionProvider, option, printStream);
+    return this;
+  }
 
-    for (Reader bootstrapReader : migrationsLoader.getBootstrapReaders()) {
+  private void bootstrap(MigrationLoader migrationLoader, ScriptRunner runner) {
+
+    for (Reader bootstrapReader : migrationLoader.getBootstrapReaders()) {
       out.println(horizontalLine("Bootstrapping: " + bootstrapReader, 80));
       runner.runScript(bootstrapReader);
     }
     runner.closeConnection();
-
-    return this;
   }
 }

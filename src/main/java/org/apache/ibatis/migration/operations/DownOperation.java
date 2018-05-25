@@ -81,7 +81,11 @@ public final class DownOperation extends DatabaseOperation {
                 hook.beforeEach(hookBindings);
               }
               System.out.println(Util.horizontalLine("Undoing: " + change.getFilename(), 80));
+
+              long start = System.currentTimeMillis();
               runner.runScript(migrationsLoader.getRollbackReader(change));
+              long end = System.currentTimeMillis();
+
               if (changelogExists(connectionProvider, option)) {
                 deleteChange(connectionProvider, change, option);
               } else {
@@ -93,6 +97,7 @@ public final class DownOperation extends DatabaseOperation {
               if (hook != null) {
                 hookBindings.put(MigrationHook.HOOK_CONTEXT,
                     new HookContext(connectionProvider, runner, change.clone()));
+                hookBindings.put("executionTime", end - start);
                 hook.afterEach(hookBindings);
               }
               stepCount++;

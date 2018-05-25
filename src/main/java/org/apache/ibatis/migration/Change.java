@@ -15,7 +15,14 @@
  */
 package org.apache.ibatis.migration;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.math.BigDecimal;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Formatter;
+import java.util.Optional;
+import java.util.stream.IntStream;
 
 public class Change implements Comparable<Change>, Cloneable {
 
@@ -83,6 +90,34 @@ public class Change implements Comparable<Change>, Cloneable {
 
   public void setFilename(String filename) {
     this.filename = filename;
+  }
+
+  public String getFileHash() {
+    MessageDigest sha256;
+    try {
+      sha256 = MessageDigest.getInstance("SHA-256");
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
+
+    File f = new File(this.filename);
+
+    byte[] buff = new byte[1024 * 1024];
+    Formatter formatter = new Formatter();
+    try {
+      FileInputStream fis = new FileInputStream(f);
+      for (int read = fis.read(buff); read > -1; read = fis.read(buff)) {
+        sha256.update(buff, 0, read);
+      }
+      fis.close();
+      byte[] hash = sha256.digest();
+      for (byte b : hash) {
+        formatter.format("%02x", b);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    return formatter.toString();
   }
 
   @Override

@@ -18,9 +18,13 @@ package org.apache.ibatis.migration.runtime_migration;
 import org.apache.ibatis.migration.MigrationException;
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.Connection;
@@ -85,11 +89,13 @@ public class RuntimeMigrationTest {
     assertEquals("0", runQuery(connectionProvider, "select count(*) from bootstrap_table"));
   }
 
-  @Test(expected = MigrationException.class)
+  @Test
   public void shouldIgnoreBootstrapIfChangelogExists() throws Exception {
     new UpOperation(1).operate(connectionProvider, migrationsLoader, dbOption, new PrintStream(out));
 
-    new BootstrapOperation().operate(connectionProvider, migrationsLoader, dbOption, new PrintStream(out));
+    ByteArrayOutputStream capture = new ByteArrayOutputStream();
+    new BootstrapOperation().operate(connectionProvider, migrationsLoader, dbOption, new PrintStream(capture));
+    assertTrue(new String(capture.toByteArray()).contains("changelog exists"));
   }
 
   @Test

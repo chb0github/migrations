@@ -34,8 +34,11 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.ServiceLoader;
@@ -172,6 +175,17 @@ public abstract class BaseCommand implements Command {
       throw new MigrationException(
           "Failed to parse last id '" + lastChange.getId() + "' using the specified idPattern '" + pattern + "'");
     }
+  }
+
+  protected Map<String, Object> baseBindings(Change change, String[] params) {
+
+    Map<String, Object> hookBindings = new HashMap<String, Object>();
+    hookBindings.put("change", change);
+    hookBindings.put("paths", paths);
+    hookBindings.put("environment", getVariables());
+    hookBindings.put("args", Arrays.asList(params));
+    hookBindings.put("now", new Date());
+    return hookBindings;
   }
 
   protected String generateTimestampId() {

@@ -92,11 +92,14 @@ public final class UpOperation extends DatabaseOperation {
             }
             System.out.println(Util.horizontalLine("Applying: " + change.getFilename(), 80));
             scriptReader = migrationsLoader.getScriptReader(change);
+            long start = System.currentTimeMillis();
             runner.runScript(scriptReader);
+            long end = System.currentTimeMillis();
             insertChangelog(change, connectionProvider, option);
             println(printStream);
             if (hook != null) {
               hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connectionProvider, runner, change.clone()));
+              hookBindings.put("executionTime", end - start);
               hook.afterEach(hookBindings);
             }
             stepCount++;

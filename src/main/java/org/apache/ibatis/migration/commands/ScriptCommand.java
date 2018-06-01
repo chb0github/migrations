@@ -15,19 +15,20 @@
  */
 package org.apache.ibatis.migration.commands;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.ibatis.migration.Change;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.operations.DatabaseOperation;
 import org.apache.ibatis.migration.operations.StatusOperation;
 import org.apache.ibatis.migration.options.SelectedOptions;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.List;
 
 public final class ScriptCommand extends BaseCommand {
 
@@ -83,8 +84,8 @@ public final class ScriptCommand extends BaseCommand {
         } finally {
           connection.close();
         }
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (SQLException e) {
+        throw new MigrationException(e);
       }
       Collections.sort(migrations);
       if (undo) {

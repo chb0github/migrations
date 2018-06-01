@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.apache.ibatis.migration.operations;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,32 +27,29 @@ import java.util.Map;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.jdbc.SqlRunner;
 import org.apache.ibatis.migration.Change;
-import org.apache.ibatis.migration.ConnectionProvider;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
 
 public abstract class DatabaseOperation {
 
-  protected void insertChangelog(Change change, ConnectionProvider connectionProvider, DatabaseOperationOption option) {
-    SqlRunner runner = getSqlRunner(connectionProvider);
+  protected void insertChangelog(Change change, Connection connection, DatabaseOperationOption option) {
+    SqlRunner runner = getSqlRunner(connection);
     change.setAppliedTimestamp(generateAppliedTimeStampAsString());
     try {
       runner.insert("insert into " + option.getChangelogTable() + " (ID, APPLIED_AT, DESCRIPTION) values (?,?,?)",
           change.getId(), change.getAppliedTimestamp(), change.getDescription());
     } catch (SQLException e) {
       throw new MigrationException("Error querying last applied migration.  Cause: " + e, e);
-    } finally {
-      runner.closeConnection();
     }
   }
 
-  protected Change getLastAppliedChange(ConnectionProvider connectionProvider, DatabaseOperationOption option) {
-    List<Change> changelog = getChangelog(connectionProvider, option);
+  protected Change getLastAppliedChange(Connection connection, DatabaseOperationOption option) {
+    List<Change> changelog = getChangelog(connection, option);
     return changelog.isEmpty() ? null : changelog.get(changelog.size() - 1);
   }
 
-  protected List<Change> getChangelog(ConnectionProvider connectionProvider, DatabaseOperationOption option) {
-    SqlRunner runner = getSqlRunner(connectionProvider);
+  protected List<Change> getChangelog(Connection connection, DatabaseOperationOption option) {
+    SqlRunner runner = getSqlRunner(connection);
     try {
       List<Map<String, Object>> changelog = runner
           .selectAll("select ID, APPLIED_AT, DESCRIPTION from " + option.getChangelogTable() + " order by ID");
@@ -65,36 +63,28 @@ public abstract class DatabaseOperation {
       return changes;
     } catch (SQLException e) {
       throw new MigrationException("Error querying last applied migration.  Cause: " + e, e);
-    } finally {
-      runner.closeConnection();
     }
   }
 
-  protected boolean changelogExists(ConnectionProvider connectionProvider, DatabaseOperationOption option) {
-    SqlRunner runner = getSqlRunner(connectionProvider);
+  protected boolean changelogExists(Connection connection, DatabaseOperationOption option) {
+    SqlRunner runner = getSqlRunner(connection);
     try {
       runner.selectAll("select ID, APPLIED_AT, DESCRIPTION from " + option.getChangelogTable());
       return true;
     } catch (SQLException e) {
       return false;
-    } finally {
-      runner.closeConnection();
     }
   }
 
-  protected SqlRunner getSqlRunner(ConnectionProvider connectionProvider) {
-    try {
-      return new SqlRunner(connectionProvider.getConnection());
-    } catch (SQLException e) {
-      throw new MigrationException("Could not create SqlRunner. Cause: " + e, e);
-    }
+  protected SqlRunner getSqlRunner(Connection connection) {
+    return new SqlRunner(connection);
   }
 
-  protected ScriptRunner getScriptRunner(ConnectionProvider connectionProvider, DatabaseOperationOption option,
+  protected ScriptRunner getScriptRunner(Connection connection, DatabaseOperationOption option,
       PrintStream printStream) {
     try {
       PrintWriter outWriter = printStream == null ? null : new PrintWriter(printStream);
-      ScriptRunner scriptRunner = new ScriptRunner(connectionProvider.getConnection());
+      ScriptRunner scriptRunner = new ScriptRunner(connection);
       scriptRunner.setLogWriter(outWriter);
       scriptRunner.setErrorLogWriter(outWriter);
       scriptRunner.setStopOnError(option.isStopOnError());

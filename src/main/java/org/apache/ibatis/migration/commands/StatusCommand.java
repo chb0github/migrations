@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 package org.apache.ibatis.migration.commands;
 
+import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.operations.StatusOperation;
 import org.apache.ibatis.migration.options.SelectedOptions;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public final class StatusCommand extends BaseCommand {
   private StatusOperation operation;
@@ -27,8 +31,18 @@ public final class StatusCommand extends BaseCommand {
 
   @Override
   public void execute(String... params) {
-    operation = new StatusOperation().operate(getConnectionProvider(), getMigrationLoader(),
-        getDatabaseOperationOption(), printStream);
+
+    try {
+      Connection connection = getConnection();
+      try {
+        operation = new StatusOperation().operate(connection, getMigrationLoader(), getDatabaseOperationOption(),
+            printStream);
+      } finally {
+        connection.close();
+      }
+    } catch (SQLException e) {
+      throw new MigrationException(e);
+    }
   }
 
   public StatusOperation getOperation() {

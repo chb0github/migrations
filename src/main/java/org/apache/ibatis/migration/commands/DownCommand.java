@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 package org.apache.ibatis.migration.commands;
 
+import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.operations.DownOperation;
 import org.apache.ibatis.migration.options.SelectedOptions;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public final class DownCommand extends BaseCommand {
   public DownCommand(SelectedOptions options) {
@@ -25,8 +29,17 @@ public final class DownCommand extends BaseCommand {
 
   @Override
   public void execute(String... params) {
-    DownOperation operation = new DownOperation(getStepCountParameter(1, params));
-    operation.operate(getConnectionProvider(), getMigrationLoader(), getDatabaseOperationOption(), printStream,
-        createDownHook());
+    DownOperation op = new DownOperation(getStepCountParameter(1, params));
+
+    try {
+      Connection connection = getConnection();
+      try {
+        op.operate(connection, getMigrationLoader(), getDatabaseOperationOption(), printStream, createDownHook());
+      } finally {
+        connection.close();
+      }
+    } catch (SQLException e) {
+      throw new MigrationException(e);
+    }
   }
 }

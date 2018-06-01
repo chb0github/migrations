@@ -15,20 +15,15 @@
  */
 package org.apache.ibatis.migration.operations;
 
-import static java.lang.System.err;
 import static java.lang.System.out;
 import org.apache.ibatis.jdbc.ScriptRunner;
-import org.apache.ibatis.migration.ConnectionProvider;
-import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
-import org.apache.ibatis.migration.utils.Util;
 import static org.apache.ibatis.migration.utils.Util.horizontalLine;
-import sun.font.ScriptRun;
 
 import java.io.PrintStream;
 import java.io.Reader;
-import java.util.Collection;
+import java.sql.Connection;
 
 public final class BootstrapOperation extends DatabaseOperation {
   private final boolean force;
@@ -42,20 +37,20 @@ public final class BootstrapOperation extends DatabaseOperation {
     this.force = force;
   }
 
-  public BootstrapOperation operate(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
+  public BootstrapOperation operate(Connection connection, MigrationLoader migrationsLoader,
       DatabaseOperationOption option, PrintStream printStream) {
     if (option == null) {
       option = new DatabaseOperationOption();
     }
-    if (changelogExists(connectionProvider, option)) {
+    if (changelogExists(connection, option)) {
       if (force) {
-        bootstrap(migrationsLoader, getScriptRunner(connectionProvider, option, printStream));
+        bootstrap(migrationsLoader, getScriptRunner(connection, option, printStream));
       } else {
         printStream.println("For your safety, the bootstrapping will only run before migrations are applied "
             + "(i.e. before the changelog exists).  If you're certain, you can run it " + "using the --force option.");
       }
     } else {
-      bootstrap(migrationsLoader, getScriptRunner(connectionProvider, option, printStream));
+      bootstrap(migrationsLoader, getScriptRunner(connection, option, printStream));
     }
     return this;
   }
@@ -66,6 +61,5 @@ public final class BootstrapOperation extends DatabaseOperation {
       out.println(horizontalLine("Bootstrapping: " + bootstrapReader, 80));
       runner.runScript(bootstrapReader);
     }
-    runner.closeConnection();
   }
 }

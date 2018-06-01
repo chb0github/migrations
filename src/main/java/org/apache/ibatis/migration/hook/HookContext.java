@@ -22,17 +22,14 @@ import java.sql.SQLException;
 
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.migration.Change;
-import org.apache.ibatis.migration.ConnectionProvider;
-import org.apache.ibatis.migration.MigrationException;
 
 public class HookContext {
-  private ConnectionProvider connectionProvider;
+  private Connection   connection;
   private ScriptRunner scriptRunner;
-  private Change change;
+  private Change       change;
 
-  public HookContext(ConnectionProvider connectionProvider, ScriptRunner scriptRunner, Change change) {
-    super();
-    this.connectionProvider = connectionProvider;
+  public HookContext(Connection connection, ScriptRunner scriptRunner, Change change) {
+    this.connection = connection;
     this.scriptRunner = scriptRunner;
     this.change = change;
   }
@@ -43,7 +40,7 @@ public class HookContext {
    *           If a database access error occurs.
    */
   public Connection getConnection() throws SQLException {
-    return connectionProvider.getConnection();
+    return connection;
   }
 
   /**

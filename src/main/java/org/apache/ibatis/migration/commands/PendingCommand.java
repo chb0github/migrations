@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 package org.apache.ibatis.migration.commands;
 
+import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.operations.PendingOperation;
 import org.apache.ibatis.migration.options.SelectedOptions;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public final class PendingCommand extends BaseCommand {
   public PendingCommand(SelectedOptions options) {
@@ -26,7 +30,16 @@ public final class PendingCommand extends BaseCommand {
   @Override
   public void execute(String... params) {
     PendingOperation operation = new PendingOperation();
-    operation.operate(getConnectionProvider(), getMigrationLoader(), getDatabaseOperationOption(), printStream,
-        createUpHook());
+
+    try {
+      Connection connection = getConnection();
+      try {
+        operation.operate(connection, getMigrationLoader(), getDatabaseOperationOption(), printStream, createUpHook());
+      } finally {
+        connection.close();
+      }
+    } catch (SQLException e) {
+      throw new MigrationException(e);
+    }
   }
 }

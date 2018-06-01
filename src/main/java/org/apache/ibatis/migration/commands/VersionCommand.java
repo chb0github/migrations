@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 package org.apache.ibatis.migration.commands;
 
-import java.math.BigDecimal;
-
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.operations.VersionOperation;
 import org.apache.ibatis.migration.options.SelectedOptions;
+
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public final class VersionCommand extends BaseCommand {
   public VersionCommand(SelectedOptions options) {
@@ -31,9 +33,19 @@ public final class VersionCommand extends BaseCommand {
     ensureParamsPassed(params);
     ensureNumericParam(params);
 
-    VersionOperation operation = new VersionOperation(new BigDecimal(params[0]));
-    operation.operate(getConnectionProvider(), getMigrationLoader(), getDatabaseOperationOption(), printStream,
-        createUpHook(), createDownHook());
+    VersionOperation op = new VersionOperation(new BigDecimal(params[0]));
+
+    try {
+      Connection connection = getConnection();
+      try {
+        op.operate(connection, getMigrationLoader(), getDatabaseOperationOption(), printStream, createUpHook(),
+            createDownHook());
+      } finally {
+        connection.close();
+      }
+    } catch (SQLException e) {
+      throw new MigrationException(e);
+    }
   }
 
   private void ensureParamsPassed(String... params) {
@@ -45,7 +57,7 @@ public final class VersionCommand extends BaseCommand {
   private void ensureNumericParam(String... params) {
     try {
       new BigDecimal(params[0]);
-    } catch (Exception e) {
+    } catch (NumberFormatException e) {
       throw new MigrationException("The version number must be a numeric integer.  " + e, e);
     }
   }

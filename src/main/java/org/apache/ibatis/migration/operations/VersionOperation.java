@@ -1,5 +1,5 @@
 /**
- *    Copyright 2010-2017 the original author or authors.
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package org.apache.ibatis.migration.operations;
 
 import java.io.PrintStream;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.util.List;
 
 import org.apache.ibatis.migration.Change;
-import org.apache.ibatis.migration.ConnectionProvider;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.hook.MigrationHook;
@@ -37,31 +37,31 @@ public final class VersionOperation extends DatabaseOperation {
     }
   }
 
-  public VersionOperation operate(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
+  public VersionOperation operate(Connection connection, MigrationLoader migrationsLoader,
       DatabaseOperationOption option, PrintStream printStream) {
-    return operate(connectionProvider, migrationsLoader, option, printStream, null, null);
+    return operate(connection, migrationsLoader, option, printStream, null, null);
   }
 
-  public VersionOperation operate(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
+  public VersionOperation operate(Connection connection, MigrationLoader migrationsLoader,
       DatabaseOperationOption option, PrintStream printStream, MigrationHook upHook, MigrationHook downHook) {
     if (option == null) {
       option = new DatabaseOperationOption();
     }
     ensureVersionExists(migrationsLoader);
-    Change change = getLastAppliedChange(connectionProvider, option);
+    Change change = getLastAppliedChange(connection, option);
     if (change == null || version.compareTo(change.getId()) > 0) {
       println(printStream, "Upgrading to: " + version);
       UpOperation up = new UpOperation(1);
       while (!version.equals(change.getId())) {
-        up.operate(connectionProvider, migrationsLoader, option, printStream, upHook);
-        change = getLastAppliedChange(connectionProvider, option);
+        up.operate(connection, migrationsLoader, option, printStream, upHook);
+        change = getLastAppliedChange(connection, option);
       }
     } else if (version.compareTo(change.getId()) < 0) {
       println(printStream, "Downgrading to: " + version);
       DownOperation down = new DownOperation(1);
       while (!version.equals(change.getId())) {
-        down.operate(connectionProvider, migrationsLoader, option, printStream, downHook);
-        change = getLastAppliedChange(connectionProvider, option);
+        down.operate(connection, migrationsLoader, option, printStream, downHook);
+        change = getLastAppliedChange(connection, option);
       }
     } else {
       println(printStream, "Already at version: " + version);

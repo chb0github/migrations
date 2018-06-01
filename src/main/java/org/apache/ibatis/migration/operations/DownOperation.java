@@ -121,6 +121,7 @@ public final class DownOperation extends DatabaseOperation {
     SqlRunner runner = getSqlRunner(connection);
     try {
       runner.delete("delete from " + option.getChangelogTable() + " where ID = ?", change.getId());
+      connection.commit();
     } catch (SQLException e) {
       throw new MigrationException("Error querying last applied migration.  Cause: " + e, e);
     }

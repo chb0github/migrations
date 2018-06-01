@@ -38,6 +38,7 @@ public abstract class DatabaseOperation {
     try {
       runner.insert("insert into " + option.getChangelogTable() + " (ID, APPLIED_AT, DESCRIPTION) values (?,?,?)",
           change.getId(), change.getAppliedTimestamp(), change.getDescription());
+      connection.commit();
     } catch (SQLException e) {
       throw new MigrationException("Error querying last applied migration.  Cause: " + e, e);
     }

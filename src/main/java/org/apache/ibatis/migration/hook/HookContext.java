@@ -24,9 +24,9 @@ import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.migration.Change;
 
 public class HookContext {
-  private Connection   connection;
+  private Connection connection;
   private ScriptRunner scriptRunner;
-  private Change       change;
+  private Change change;
 
   public HookContext(Connection connection, ScriptRunner scriptRunner, Change change) {
     this.connection = connection;

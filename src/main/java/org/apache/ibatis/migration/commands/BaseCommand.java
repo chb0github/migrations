@@ -30,6 +30,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.sql.Connection;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -47,7 +48,6 @@ import java.util.TimeZone;
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.migration.Change;
-import org.apache.ibatis.migration.ConnectionProvider;
 import org.apache.ibatis.migration.DataSourceConnectionProvider;
 import org.apache.ibatis.migration.Environment;
 import org.apache.ibatis.migration.FileMigrationLoader;
@@ -306,11 +306,11 @@ public abstract class BaseCommand implements Command {
     }
   }
 
-  protected ConnectionProvider getConnectionProvider() {
+  protected Connection getConnection() {
     try {
       UnpooledDataSource dataSource = new UnpooledDataSource(getDriverClassLoader(), environment().getDriver(),
           environment().getUrl(), environment().getUsername(), environment().getPassword());
-      return new DataSourceConnectionProvider(dataSource);
+      return dataSource.getConnection();
     } catch (Exception e) {
       throw new MigrationException("Error creating ScriptRunner.  Cause: " + e, e);
     }

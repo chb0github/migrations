@@ -17,6 +17,7 @@ package org.apache.ibatis.migration.operations;
 
 import java.io.PrintStream;
 import java.io.Reader;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.migration.Change;
-import org.apache.ibatis.migration.ConnectionProvider;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.hook.HookContext;
@@ -34,12 +34,12 @@ import org.apache.ibatis.migration.utils.Util;
 
 public final class PendingOperation extends DatabaseOperation {
 
-  public PendingOperation operate(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
+  public PendingOperation operate(Connection connectionProvider, MigrationLoader migrationsLoader,
       DatabaseOperationOption option, PrintStream printStream) {
     return operate(connectionProvider, migrationsLoader, option, printStream, null);
   }
 
-  public PendingOperation operate(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
+  public PendingOperation operate(Connection connectionProvider, MigrationLoader migrationsLoader,
       DatabaseOperationOption option, PrintStream printStream, MigrationHook hook) {
     try {
       if (option == null) {
@@ -86,7 +86,7 @@ public final class PendingOperation extends DatabaseOperation {
         if (scriptReader != null) {
           scriptReader.close();
         }
-        runner.closeConnection();
+
       }
     } catch (MigrationException e) {
       throw e;
@@ -95,7 +95,7 @@ public final class PendingOperation extends DatabaseOperation {
     }
   }
 
-  private List<Change> getPendingChanges(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
+  private List<Change> getPendingChanges(Connection connectionProvider, MigrationLoader migrationsLoader,
       DatabaseOperationOption option) {
     List<Change> pending = new ArrayList<Change>();
     List<Change> migrations = migrationsLoader.getMigrations();

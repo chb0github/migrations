@@ -17,6 +17,7 @@ package org.apache.ibatis.migration.operations;
 
 import java.io.PrintStream;
 import java.io.Reader;
+import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,6 @@ import java.util.Map;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.migration.Change;
-import org.apache.ibatis.migration.ConnectionProvider;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.hook.HookContext;
@@ -49,27 +49,27 @@ public final class UpOperation extends DatabaseOperation {
     }
   }
 
-  public UpOperation operate(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
-      DatabaseOperationOption option, PrintStream printStream) {
-    return operate(connectionProvider, migrationsLoader, option, printStream, null);
+  public UpOperation operate(Connection connection, MigrationLoader migrationsLoader, DatabaseOperationOption option,
+      PrintStream printStream) {
+    return operate(connection, migrationsLoader, option, printStream, null);
   }
 
-  public UpOperation operate(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
-      DatabaseOperationOption option, PrintStream printStream, MigrationHook hook) {
+  public UpOperation operate(Connection connection, MigrationLoader migrationsLoader, DatabaseOperationOption option,
+      PrintStream printStream, MigrationHook hook) {
     try {
       if (option == null) {
         option = new DatabaseOperationOption();
       }
 
       Change lastChange = null;
-      if (changelogExists(connectionProvider, option)) {
-        lastChange = getLastAppliedChange(connectionProvider, option);
+      if (changelogExists(connection, option)) {
+        lastChange = getLastAppliedChange(connection, option);
       }
 
       List<Change> migrations = migrationsLoader.getMigrations();
       Collections.sort(migrations);
       int stepCount = 0;
-      ScriptRunner runner = getScriptRunner(connectionProvider, option, printStream);
+      ScriptRunner runner = getScriptRunner(connection, option, printStream);
 
       Map<String, Object> hookBindings = new HashMap<String, Object>();
 
@@ -83,11 +83,11 @@ public final class UpOperation extends DatabaseOperation {
           currentChange = change;
           if (lastChange == null || change.getId().compareTo(lastChange.getId()) > 0) {
             if (stepCount == 0 && hook != null) {
-              hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connectionProvider, runner, null));
+              hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connection, runner, null));
               hook.before(hookBindings);
             }
             if (hook != null) {
-              hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connectionProvider, runner, change.clone()));
+              hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connection, runner, change.clone()));
               hook.beforeEach(hookBindings);
             }
             System.out.println(Util.horizontalLine("Applying: " + change.getFilename(), 80));
@@ -95,10 +95,10 @@ public final class UpOperation extends DatabaseOperation {
             long start = System.currentTimeMillis();
             runner.runScript(scriptReader);
             long end = System.currentTimeMillis();
-            insertChangelog(change, connectionProvider, option);
+            insertChangelog(change, connection, option);
             println(printStream);
             if (hook != null) {
-              hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connectionProvider, runner, change.clone()));
+              hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connection, runner, change.clone()));
               hookBindings.put("executionTime", end - start);
               hook.afterEach(hookBindings);
             }
@@ -109,7 +109,7 @@ public final class UpOperation extends DatabaseOperation {
           }
         }
         if (stepCount > 0 && hook != null) {
-          hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connectionProvider, runner, null));
+          hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connection, runner, null));
           hook.after(hookBindings);
         }
         return this;
@@ -129,7 +129,6 @@ public final class UpOperation extends DatabaseOperation {
         if (onAbortScriptReader != null) {
           onAbortScriptReader.close();
         }
-        runner.closeConnection();
       }
     } catch (MigrationException e) {
       throw e;

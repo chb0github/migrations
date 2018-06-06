@@ -16,6 +16,7 @@
 package org.apache.ibatis.migration.operations;
 
 import java.io.PrintStream;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,7 +26,6 @@ import java.util.Map;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.jdbc.SqlRunner;
 import org.apache.ibatis.migration.Change;
-import org.apache.ibatis.migration.ConnectionProvider;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.hook.HookContext;
@@ -45,18 +45,18 @@ public final class DownOperation extends DatabaseOperation {
     this.steps = steps;
   }
 
-  public DownOperation operate(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
+  public DownOperation operate(Connection connectionProvider, MigrationLoader migrationsLoader,
       DatabaseOperationOption option, PrintStream printStream) {
     return operate(connectionProvider, migrationsLoader, option, printStream, null);
   }
 
-  public DownOperation operate(ConnectionProvider connectionProvider, MigrationLoader migrationsLoader,
-      DatabaseOperationOption option, PrintStream printStream, MigrationHook hook) {
+  public DownOperation operate(Connection connection, MigrationLoader migrationsLoader, DatabaseOperationOption option,
+      PrintStream printStream, MigrationHook hook) {
     try {
       if (option == null) {
         option = new DatabaseOperationOption();
       }
-      Change lastChange = getLastAppliedChange(connectionProvider, option);
+      Change lastChange = getLastAppliedChange(connection, option);
       if (lastChange == null) {
         println(printStream, "Changelog exist, but no migration found.");
       } else {
@@ -64,55 +64,49 @@ public final class DownOperation extends DatabaseOperation {
         Collections.sort(migrations);
         Collections.reverse(migrations);
         int stepCount = 0;
-        ScriptRunner runner = getScriptRunner(connectionProvider, option, printStream);
+        ScriptRunner runner = getScriptRunner(connection, option, printStream);
 
         Map<String, Object> hookBindings = new HashMap<String, Object>();
 
-        try {
-          for (Change change : migrations) {
-            if (change.getId().equals(lastChange.getId())) {
-              if (stepCount == 0 && hook != null) {
-                hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connectionProvider, runner, null));
-                hook.before(hookBindings);
-              }
-              if (hook != null) {
-                hookBindings.put(MigrationHook.HOOK_CONTEXT,
-                    new HookContext(connectionProvider, runner, change.clone()));
-                hook.beforeEach(hookBindings);
-              }
-              System.out.println(Util.horizontalLine("Undoing: " + change.getFilename(), 80));
-
-              long start = System.currentTimeMillis();
-              runner.runScript(migrationsLoader.getRollbackReader(change));
-              long end = System.currentTimeMillis();
-
-              if (changelogExists(connectionProvider, option)) {
-                deleteChange(connectionProvider, change, option);
-              } else {
-                println(printStream,
-                    "Changelog doesn't exist. No further migrations will be undone (normal for the last migration).");
-                stepCount = steps;
-              }
-              println(printStream);
-              if (hook != null) {
-                hookBindings.put(MigrationHook.HOOK_CONTEXT,
-                    new HookContext(connectionProvider, runner, change.clone()));
-                hookBindings.put("executionTime", end - start);
-                hook.afterEach(hookBindings);
-              }
-              stepCount++;
-              if (steps == null || stepCount >= steps) {
-                break;
-              }
-              lastChange = getLastAppliedChange(connectionProvider, option);
+        for (Change change : migrations) {
+          if (change.getId().equals(lastChange.getId())) {
+            if (stepCount == 0 && hook != null) {
+              hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connection, runner, null));
+              hook.before(hookBindings);
             }
+            if (hook != null) {
+              hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connection, runner, change.clone()));
+              hook.beforeEach(hookBindings);
+            }
+            System.out.println(Util.horizontalLine("Undoing: " + change.getFilename(), 80));
+
+            long start = System.currentTimeMillis();
+            runner.runScript(migrationsLoader.getRollbackReader(change));
+            long end = System.currentTimeMillis();
+
+            if (changelogExists(connection, option)) {
+              deleteChange(connection, change, option);
+            } else {
+              println(printStream,
+                  "Changelog doesn't exist. No further migrations will be undone (normal for the last migration).");
+              stepCount = steps;
+            }
+            println(printStream);
+            if (hook != null) {
+              hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connection, runner, change.clone()));
+              hookBindings.put("executionTime", end - start);
+              hook.afterEach(hookBindings);
+            }
+            stepCount++;
+            if (steps == null || stepCount >= steps) {
+              break;
+            }
+            lastChange = getLastAppliedChange(connection, option);
           }
-          if (stepCount > 0 && hook != null) {
-            hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connectionProvider, runner, null));
-            hook.after(hookBindings);
-          }
-        } finally {
-          runner.closeConnection();
+        }
+        if (stepCount > 0 && hook != null) {
+          hookBindings.put(MigrationHook.HOOK_CONTEXT, new HookContext(connection, runner, null));
+          hook.after(hookBindings);
         }
       }
       return this;
@@ -123,14 +117,13 @@ public final class DownOperation extends DatabaseOperation {
     }
   }
 
-  protected void deleteChange(ConnectionProvider connectionProvider, Change change, DatabaseOperationOption option) {
-    SqlRunner runner = getSqlRunner(connectionProvider);
+  protected void deleteChange(Connection connection, Change change, DatabaseOperationOption option) {
+    SqlRunner runner = getSqlRunner(connection);
     try {
       runner.delete("delete from " + option.getChangelogTable() + " where ID = ?", change.getId());
+      connection.commit();
     } catch (SQLException e) {
       throw new MigrationException("Error querying last applied migration.  Cause: " + e, e);
-    } finally {
-      runner.closeConnection();
     }
   }
 }

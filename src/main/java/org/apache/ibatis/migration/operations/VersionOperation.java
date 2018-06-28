@@ -49,22 +49,25 @@ public final class VersionOperation extends DatabaseOperation {
     }
     ensureVersionExists(migrationsLoader);
     Change change = getLastAppliedChange(connection, option);
-    if (change == null || version.compareTo(change.getId()) > 0) {
-      println(printStream, "Upgrading to: " + version);
-      UpOperation up = new UpOperation(1);
-      while (!version.equals(change.getId())) {
-        up.operate(connection, migrationsLoader, option, printStream, upHook);
-        change = getLastAppliedChange(connection, option);
-      }
-    } else if (version.compareTo(change.getId()) < 0) {
-      println(printStream, "Downgrading to: " + version);
-      DownOperation down = new DownOperation(1);
-      while (!version.equals(change.getId())) {
-        down.operate(connection, migrationsLoader, option, printStream, downHook);
-        change = getLastAppliedChange(connection, option);
-      }
-    } else {
-      println(printStream, "Already at version: " + version);
+    if (change != null){
+        if(version.compareTo(change.getId()) > 0) {
+            println(printStream, "Upgrading to: " + version);
+            UpOperation up = new UpOperation(1);
+            while (!version.equals(change.getId())) {
+                up.operate(connection, migrationsLoader, option, printStream, upHook);
+                change = getLastAppliedChange(connection, option);
+            }
+        } else if (version.compareTo(change.getId()) < 0) {
+            println(printStream, "Downgrading to: " + version);
+            DownOperation down = new DownOperation(1);
+            while (!version.equals(change.getId())) {
+                down.operate(connection, migrationsLoader, option, printStream, downHook);
+                change = getLastAppliedChange(connection, option);
+            }
+        }
+        else {
+            println(printStream, "Already at version: " + version);
+        }
     }
     println(printStream);
     return this;

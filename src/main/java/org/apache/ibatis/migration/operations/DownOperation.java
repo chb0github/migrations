@@ -18,6 +18,7 @@ package org.apache.ibatis.migration.operations;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,20 +35,25 @@ import org.apache.ibatis.migration.options.DatabaseOperationOption;
 import org.apache.ibatis.migration.utils.Util;
 
 public final class DownOperation extends DatabaseOperation {
+  private final List<String> args;
   private Integer steps;
 
   public DownOperation() {
-    this(null);
+    this(null, Collections.<String> emptyList());
   }
 
-  public DownOperation(Integer steps) {
-    super();
+  public DownOperation(Integer steps, String... args) {
+    this(steps, Arrays.asList(args));
+  }
+
+  public DownOperation(Integer steps, List<String> args) {
+    this.args = args;
     this.steps = steps;
   }
 
-  public DownOperation operate(Connection connectionProvider, MigrationLoader migrationsLoader,
-      DatabaseOperationOption option, PrintStream printStream) {
-    return operate(connectionProvider, migrationsLoader, option, printStream, null);
+  public DownOperation operate(Connection connection, MigrationLoader migrationsLoader, DatabaseOperationOption option,
+      PrintStream printStream) {
+    return operate(connection, migrationsLoader, option, printStream, null);
   }
 
   public DownOperation operate(Connection connection, MigrationLoader migrationsLoader, DatabaseOperationOption option,
@@ -67,6 +73,7 @@ public final class DownOperation extends DatabaseOperation {
         ScriptRunner runner = getScriptRunner(connection, option, printStream);
 
         Map<String, Object> hookBindings = new HashMap<String, Object>();
+        hookBindings.put("args", Collections.unmodifiableList(args));
 
         for (Change change : migrations) {
           if (change.getId().equals(lastChange.getId())) {

@@ -21,6 +21,8 @@ import org.apache.ibatis.migration.options.SelectedOptions;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 public final class UpCommand extends BaseCommand {
   private final boolean runOneStepOnly;
@@ -37,7 +39,10 @@ public final class UpCommand extends BaseCommand {
   @Override
   public void execute(String... params) {
     final int limit = getStepCountParameter(Integer.MAX_VALUE, params);
-    UpOperation op = new UpOperation(runOneStepOnly ? 1 : limit);
+    List<String> args = Arrays.asList(params);
+    args = args.size() > 0 ? args.subList(1, args.size()) : args;
+
+    UpOperation op = new UpOperation(runOneStepOnly ? 1 : limit, args);
 
     try {
       Connection connection = getConnection();

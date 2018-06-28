@@ -15,14 +15,6 @@
  */
 package org.apache.ibatis.migration.operations;
 
-import java.io.PrintStream;
-import java.io.Reader;
-import java.sql.Connection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.migration.Change;
@@ -33,16 +25,29 @@ import org.apache.ibatis.migration.hook.MigrationHook;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
 import org.apache.ibatis.migration.utils.Util;
 
+import java.io.PrintStream;
+import java.io.Reader;
+import java.sql.Connection;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public final class UpOperation extends DatabaseOperation {
   private final Integer steps;
+  private final List<String> args;
 
   public UpOperation() {
-    super();
-    this.steps = null;
+    this(null, Collections.<String> emptyList());
   }
 
-  public UpOperation(Integer steps) {
-    super();
+  public UpOperation(Integer steps, String... args) {
+    this(steps, Arrays.asList(args));
+  }
+
+  public UpOperation(Integer steps, List<String> args) {
+    this.args = args;
     this.steps = steps;
     if (steps != null && steps < 1) {
       throw new IllegalArgumentException("step must be positive number or null.");
@@ -72,6 +77,7 @@ public final class UpOperation extends DatabaseOperation {
       ScriptRunner runner = getScriptRunner(connection, option, printStream);
 
       Map<String, Object> hookBindings = new HashMap<String, Object>();
+      hookBindings.put("args", Collections.unmodifiableList(args));
 
       Reader scriptReader = null;
       Reader onAbortScriptReader = null;
@@ -92,9 +98,11 @@ public final class UpOperation extends DatabaseOperation {
             }
             System.out.println(Util.horizontalLine("Applying: " + change.getFilename(), 80));
             scriptReader = migrationsLoader.getScriptReader(change);
+
             long start = System.currentTimeMillis();
             runner.runScript(scriptReader);
             long end = System.currentTimeMillis();
+
             insertChangelog(change, connection, option);
             println(printStream);
             if (hook != null) {

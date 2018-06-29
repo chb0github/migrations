@@ -21,8 +21,6 @@ import org.apache.ibatis.migration.options.SelectedOptions;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
 
 public final class DownCommand extends BaseCommand {
   public DownCommand(SelectedOptions options) {
@@ -32,10 +30,8 @@ public final class DownCommand extends BaseCommand {
   @Override
   public void execute(String... params) {
     int steps = getStepCountParameter(1, params);
-    List<String> args = Arrays.asList(params);
-    args = args.size() > 0 ? args.subList(1, args.size()) : args;
 
-    DownOperation op = new DownOperation(steps, args);
+    DownOperation op = new DownOperation(steps, options);
     try {
       Connection connection = getConnection();
       try {

@@ -32,22 +32,25 @@ import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.hook.HookContext;
 import org.apache.ibatis.migration.hook.MigrationHook;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
+import org.apache.ibatis.migration.options.SelectedOptions;
 import org.apache.ibatis.migration.utils.Util;
 
+import static java.util.Arrays.asList;
+
 public final class DownOperation extends DatabaseOperation {
-  private final List<String> args;
-  private Integer steps;
+  private final SelectedOptions options;
+  private final Integer steps;
 
   public DownOperation() {
-    this(null, Collections.<String> emptyList());
+    this(null, new SelectedOptions());
   }
 
-  public DownOperation(Integer steps, String... args) {
-    this(steps, Arrays.asList(args));
+  public DownOperation(Integer steps) {
+    this(steps, new SelectedOptions());
   }
 
-  public DownOperation(Integer steps, List<String> args) {
-    this.args = args;
+  public DownOperation(Integer steps, SelectedOptions options) {
+    this.options = options;
     this.steps = steps;
   }
 
@@ -73,7 +76,9 @@ public final class DownOperation extends DatabaseOperation {
         ScriptRunner runner = getScriptRunner(connection, option, printStream);
 
         Map<String, Object> hookBindings = new HashMap<String, Object>();
-        hookBindings.put("args", Collections.unmodifiableList(args));
+        hookBindings.put("args", Collections.unmodifiableList(asList(options.getParams())));
+        hookBindings.put("quiet", options.isQuiet());
+        hookBindings.put("printStream", printStream);
 
         for (Change change : migrations) {
           if (change.getId().equals(lastChange.getId())) {

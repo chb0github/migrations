@@ -23,31 +23,33 @@ import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.hook.HookContext;
 import org.apache.ibatis.migration.hook.MigrationHook;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
+import org.apache.ibatis.migration.options.SelectedOptions;
 import org.apache.ibatis.migration.utils.Util;
 
 import java.io.PrintStream;
 import java.io.Reader;
 import java.sql.Connection;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
+
 public final class UpOperation extends DatabaseOperation {
   private final Integer steps;
-  private final List<String> args;
+  private final SelectedOptions options;
 
   public UpOperation() {
-    this(null, Collections.<String> emptyList());
+    this(null, new SelectedOptions());
   }
 
-  public UpOperation(Integer steps, String... args) {
-    this(steps, Arrays.asList(args));
+  public UpOperation(Integer steps) {
+    this(steps, new SelectedOptions());
   }
 
-  public UpOperation(Integer steps, List<String> args) {
-    this.args = args;
+  public UpOperation(Integer steps, SelectedOptions options) {
+    this.options = options;
     this.steps = steps;
     if (steps != null && steps < 1) {
       throw new IllegalArgumentException("step must be positive number or null.");
@@ -77,7 +79,9 @@ public final class UpOperation extends DatabaseOperation {
       ScriptRunner runner = getScriptRunner(connection, option, printStream);
 
       Map<String, Object> hookBindings = new HashMap<String, Object>();
-      hookBindings.put("args", Collections.unmodifiableList(args));
+      hookBindings.put("args", Collections.unmodifiableList(asList(options.getParams())));
+      hookBindings.put("quiet", options.isQuiet());
+      hookBindings.put("printStream", printStream);
 
       Reader scriptReader = null;
       Reader onAbortScriptReader = null;
@@ -125,7 +129,7 @@ public final class UpOperation extends DatabaseOperation {
         onAbortScriptReader = migrationsLoader.getOnAbortReader(currentChange);
         if (onAbortScriptReader != null) {
           println(printStream);
-          System.out.println(Util.horizontalLine("Aborting: " + onAbortScriptReader, 80));
+          System.err.println(Util.horizontalLine("Aborting: " + onAbortScriptReader, 80));
           runner.runScript(onAbortScriptReader);
           println(printStream);
         }

@@ -29,8 +29,9 @@ public final class DownCommand extends BaseCommand {
 
   @Override
   public void execute(String... params) {
-    DownOperation op = new DownOperation(getStepCountParameter(1, params));
+    int steps = getStepCountParameter(1, params);
 
+    DownOperation op = new DownOperation(steps, options);
     try {
       Connection connection = getConnection();
       try {

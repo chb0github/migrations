@@ -18,6 +18,7 @@ package org.apache.ibatis.migration.operations;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -31,23 +32,31 @@ import org.apache.ibatis.migration.MigrationLoader;
 import org.apache.ibatis.migration.hook.HookContext;
 import org.apache.ibatis.migration.hook.MigrationHook;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
+import org.apache.ibatis.migration.options.SelectedOptions;
 import org.apache.ibatis.migration.utils.Util;
 
+import static java.util.Arrays.asList;
+
 public final class DownOperation extends DatabaseOperation {
-  private Integer steps;
+  private final SelectedOptions options;
+  private final Integer steps;
 
   public DownOperation() {
-    this(null);
+    this(null, new SelectedOptions());
   }
 
   public DownOperation(Integer steps) {
-    super();
+    this(steps, new SelectedOptions());
+  }
+
+  public DownOperation(Integer steps, SelectedOptions options) {
+    this.options = options;
     this.steps = steps;
   }
 
-  public DownOperation operate(Connection connectionProvider, MigrationLoader migrationsLoader,
-      DatabaseOperationOption option, PrintStream printStream) {
-    return operate(connectionProvider, migrationsLoader, option, printStream, null);
+  public DownOperation operate(Connection connection, MigrationLoader migrationsLoader, DatabaseOperationOption option,
+      PrintStream printStream) {
+    return operate(connection, migrationsLoader, option, printStream, null);
   }
 
   public DownOperation operate(Connection connection, MigrationLoader migrationsLoader, DatabaseOperationOption option,
@@ -67,6 +76,9 @@ public final class DownOperation extends DatabaseOperation {
         ScriptRunner runner = getScriptRunner(connection, option, printStream);
 
         Map<String, Object> hookBindings = new HashMap<String, Object>();
+        hookBindings.put("args", Collections.unmodifiableList(asList(options.getParams())));
+        hookBindings.put("quiet", options.isQuiet());
+        hookBindings.put("printStream", printStream);
 
         for (Change change : migrations) {
           if (change.getId().equals(lastChange.getId())) {

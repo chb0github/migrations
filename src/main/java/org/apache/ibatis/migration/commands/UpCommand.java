@@ -37,7 +37,8 @@ public final class UpCommand extends BaseCommand {
   @Override
   public void execute(String... params) {
     final int limit = getStepCountParameter(Integer.MAX_VALUE, params);
-    UpOperation op = new UpOperation(runOneStepOnly ? 1 : limit);
+
+    UpOperation op = new UpOperation(runOneStepOnly ? 1 : limit, options);
 
     try {
       Connection connection = getConnection();

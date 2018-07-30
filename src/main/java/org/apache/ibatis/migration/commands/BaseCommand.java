@@ -310,6 +310,7 @@ public abstract class BaseCommand implements Command {
     try {
       UnpooledDataSource dataSource = new UnpooledDataSource(getDriverClassLoader(), environment().getDriver(),
           environment().getUrl(), environment().getUsername(), environment().getPassword());
+      dataSource.setDriverProperties(environment.getVariables());
       return dataSource.getConnection();
     } catch (Exception e) {
       throw new MigrationException("Error creating ScriptRunner.  Cause: " + e, e);

@@ -37,7 +37,7 @@ public final class TemplateReader extends Reader {
   private final BufferedReader delegate;
 
   public TemplateReader(Reader template, Map<String, Object> variables) {
-    delegate = new CommentStrippingReader(new BufferedReader(template));
+    delegate = new BufferedReader(template);
     this.variables = new Properties();
     for (Map.Entry<String, Object> entry : variables.entrySet()) {
       this.variables.put(entry.getKey(), entry.getValue().toString());

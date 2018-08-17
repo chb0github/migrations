@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
@@ -177,20 +176,4 @@ public class Jsr233MigrationLoaderTest {
     assertEquals(expected, actual);
   }
 
-  // This little trick is necessary as a maven plugin sticks headers on all of our files.
-  private static class CommentStrippingReader extends BufferedReader {
-
-    public CommentStrippingReader(Reader in) {
-      super(in);
-    }
-
-    @Override
-    public String readLine() throws IOException {
-      String line = null;
-      do {
-        line = super.readLine();
-      } while (line != null && (line.startsWith("--") || line.isEmpty()));
-      return line;
-    }
-  }
 }

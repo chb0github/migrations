@@ -15,6 +15,7 @@
  */
 package org.apache.ibatis.migration.commands;
 
+import org.apache.ibatis.migration.Migrator;
 import static org.apache.ibatis.migration.utils.Util.file;
 
 import java.io.File;
@@ -48,7 +49,6 @@ import java.util.TimeZone;
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.migration.Change;
-import org.apache.ibatis.migration.DataSourceConnectionProvider;
 import org.apache.ibatis.migration.Environment;
 import org.apache.ibatis.migration.FileMigrationLoader;
 import org.apache.ibatis.migration.FileMigrationLoaderFactory;
@@ -61,7 +61,6 @@ import org.apache.ibatis.migration.hook.FileMigrationHook;
 import org.apache.ibatis.migration.hook.scripts.HookScriptFactory;
 import org.apache.ibatis.migration.hook.MigrationHook;
 import org.apache.ibatis.migration.hook.NoOpHook;
-import org.apache.ibatis.migration.io.ExternalResources;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
 import org.apache.ibatis.migration.options.Options;
 import org.apache.ibatis.migration.options.SelectedOptions;
@@ -70,15 +69,6 @@ import org.apache.ibatis.parsing.PropertyParser;
 
 public abstract class BaseCommand implements Command {
   private static final String DATE_FORMAT = "yyyyMMddHHmmss";
-
-  private static final String MIGRATIONS_HOME = "MIGRATIONS_HOME";
-
-  /* TODO: remove in the next major release */
-  private static final String MIGRATIONS_HOME_PROPERTY_DEPRECATED = "migrationHome";
-
-  private static final String MIGRATIONS_HOME_PROPERTY = "migrationsHome";
-
-  private static final String MIGRATIONS_PROPERTIES = "migration.properties";
 
   private ClassLoader driverClassLoader;
 
@@ -149,7 +139,7 @@ public abstract class BaseCommand implements Command {
     String idPattern = options.getIdPattern();
     if (idPattern == null) {
       try {
-        idPattern = getPropertyOption(Options.IDPATTERN.toString().toLowerCase());
+        idPattern = Migrator.getPropertyOption(Options.IDPATTERN.toString().toLowerCase());
       } catch (FileNotFoundException e) {
         // ignore
       }
@@ -209,18 +199,6 @@ public abstract class BaseCommand implements Command {
     }
   }
 
-  protected String migrationsHome() {
-    String migrationsHome = System.getenv(MIGRATIONS_HOME);
-    // Check if there is a system property
-    if (migrationsHome == null) {
-      migrationsHome = System.getProperty(MIGRATIONS_HOME_PROPERTY);
-      if (migrationsHome == null) {
-        migrationsHome = System.getProperty(MIGRATIONS_HOME_PROPERTY_DEPRECATED);
-      }
-    }
-    return migrationsHome;
-  }
-
   protected void copyExternalResourceTo(String resource, File toFile, Properties variables) {
     printStream.println("Creating: " + toFile.getName());
     try {
@@ -252,14 +230,6 @@ public abstract class BaseCommand implements Command {
     } finally {
       reader.close();
     }
-  }
-
-  protected String getPropertyOption(String key) throws FileNotFoundException {
-    String migrationsHome = migrationsHome();
-    if (migrationsHome == null || migrationsHome.isEmpty()) {
-      return null;
-    }
-    return ExternalResources.getConfiguredTemplate(migrationsHome + "/" + MIGRATIONS_PROPERTIES, key);
   }
 
   protected File environmentFile() {

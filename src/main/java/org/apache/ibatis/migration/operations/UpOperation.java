@@ -20,7 +20,7 @@ import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.migration.Change;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.MigrationLoader;
-import org.apache.ibatis.migration.TemplateReader;
+import org.apache.ibatis.migration.io.TemplateReader;
 import org.apache.ibatis.migration.hook.HookContext;
 import org.apache.ibatis.migration.hook.MigrationHook;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;

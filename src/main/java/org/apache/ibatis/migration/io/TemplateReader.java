@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.migration;
+package org.apache.ibatis.migration.io;
 
 import org.apache.ibatis.parsing.PropertyParser;
 
@@ -40,7 +40,7 @@ public final class TemplateReader extends Reader {
     delegate = new BufferedReader(template);
     this.variables = new Properties();
     for (Map.Entry<String, Object> entry : variables.entrySet()) {
-      this.variables.put(entry.getKey(), entry.getValue().toString());
+      this.variables.put(entry.getKey(), "" + entry.getValue());
     }
   }
 

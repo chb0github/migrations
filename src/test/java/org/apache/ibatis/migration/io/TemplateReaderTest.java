@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.migration;
+package org.apache.ibatis.migration.io;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -43,7 +43,7 @@ public class TemplateReaderTest {
 
   @Test
   public void readLines() throws Exception {
-    BufferedReader br = new CommentStrippingReader(reader);
+    BufferedReader br = new BufferedReader(reader);
     assertEquals("value * from beginning;", br.readLine());
     assertEquals("select value from middle;", br.readLine());
     assertEquals("select * from value;", br.readLine());

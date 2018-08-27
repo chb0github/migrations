@@ -46,7 +46,7 @@ public class TemplateReaderTest {
     BufferedReader br = new BufferedReader(reader);
     assertEquals("value * from beginning;", br.readLine());
     assertEquals("select value from middle;", br.readLine());
-    assertEquals("select * from value;", br.readLine());
+    assertEquals("select * from value", br.readLine());
     assertNull(br.readLine());
 
   }

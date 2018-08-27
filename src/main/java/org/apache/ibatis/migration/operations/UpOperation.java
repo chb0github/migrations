@@ -105,7 +105,7 @@ public final class UpOperation extends DatabaseOperation {
             scriptReader = migrationsLoader.getScriptReader(change);
 
             long start = System.currentTimeMillis();
-            runner.runScript(new TemplateReader(migrationsLoader.getScriptReader(change), hookBindings));
+            runner.runScript(new TemplateReader(scriptReader, hookBindings));
             long end = System.currentTimeMillis();
 
             insertChangelog(change, connection, option);

@@ -26,6 +26,7 @@ public enum Options {
   TRACE,
   HELP,
   TEMPLATE,
+  CERT,
   IDPATTERN,
   QUIET,
   COLOR

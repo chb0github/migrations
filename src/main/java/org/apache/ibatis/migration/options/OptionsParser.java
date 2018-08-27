@@ -71,6 +71,9 @@ public enum OptionsParser {
         case ENV:
           options.setEnvironment(argParts[1]);
           break;
+        case CERT:
+          options.setCertificate(new File(argParts[1]));
+          break;
         case FORCE:
           options.setForce(true);
           break;

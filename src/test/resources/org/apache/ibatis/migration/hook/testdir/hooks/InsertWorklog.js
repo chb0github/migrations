@@ -1,5 +1,5 @@
-/**
- *    Copyright 2010-2017 the original author or authors.
+/*
+ *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,21 +13,10 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.migration.options;
+// Rhino has println(), but Nashorn does not.
+// Both has print(), but Nashorn's outputs newline.
+if (typeof println == 'undefined')
+	this.println = print;
 
-public enum Options {
-  PATH,
-  ENVPATH,
-  SCRIPTPATH,
-  DRIVERPATH,
-  HOOKPATH,
-  ENV,
-  FORCE,
-  TRACE,
-  HELP,
-  TEMPLATE,
-  CERT,
-  IDPATTERN,
-  QUIET,
-  COLOR
-}
+hookContext.executeSql("insert into worklog (str1) values ('" + hookContext.getChange().getId() + "');");
+println('');

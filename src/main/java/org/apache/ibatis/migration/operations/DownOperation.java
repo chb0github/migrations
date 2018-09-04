@@ -18,7 +18,6 @@ package org.apache.ibatis.migration.operations;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +28,7 @@ import org.apache.ibatis.jdbc.SqlRunner;
 import org.apache.ibatis.migration.Change;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.MigrationLoader;
+import org.apache.ibatis.migration.io.TemplateReader;
 import org.apache.ibatis.migration.hook.HookContext;
 import org.apache.ibatis.migration.hook.MigrationHook;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
@@ -93,7 +93,7 @@ public final class DownOperation extends DatabaseOperation {
             System.out.println(Util.horizontalLine("Undoing: " + change.getFilename(), 80));
 
             long start = System.currentTimeMillis();
-            runner.runScript(migrationsLoader.getRollbackReader(change));
+            runner.runScript(new TemplateReader(migrationsLoader.getRollbackReader(change), hookBindings));
             long end = System.currentTimeMillis();
 
             if (changelogExists(connection, option)) {

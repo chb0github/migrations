@@ -20,6 +20,8 @@ import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.migration.Change;
 import org.apache.ibatis.migration.MigrationException;
 import org.apache.ibatis.migration.MigrationLoader;
+import org.apache.ibatis.migration.Migrator;
+import org.apache.ibatis.migration.io.TemplateReader;
 import org.apache.ibatis.migration.hook.HookContext;
 import org.apache.ibatis.migration.hook.MigrationHook;
 import org.apache.ibatis.migration.options.DatabaseOperationOption;
@@ -82,6 +84,7 @@ public final class UpOperation extends DatabaseOperation {
       hookBindings.put("args", Collections.unmodifiableList(asList(options.getParams())));
       hookBindings.put("quiet", options.isQuiet());
       hookBindings.put("printStream", printStream);
+      hookBindings.put("certFile", options.getCertFile());
 
       Reader scriptReader = null;
       Reader onAbortScriptReader = null;
@@ -104,7 +107,7 @@ public final class UpOperation extends DatabaseOperation {
             scriptReader = migrationsLoader.getScriptReader(change);
 
             long start = System.currentTimeMillis();
-            runner.runScript(scriptReader);
+            runner.runScript(new TemplateReader(scriptReader, hookBindings));
             long end = System.currentTimeMillis();
 
             insertChangelog(change, connection, option);

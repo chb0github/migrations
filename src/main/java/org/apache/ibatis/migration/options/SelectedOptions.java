@@ -15,6 +15,7 @@
  */
 package org.apache.ibatis.migration.options;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class SelectedOptions {
   private boolean help;
   private boolean quiet;
   private boolean color;
+  private File certFile;
 
   public boolean isQuiet() {
     return quiet;
@@ -113,5 +115,13 @@ public class SelectedOptions {
 
   public void setHelp(boolean aHelp) {
     help = aHelp;
+  }
+
+  public void setCertificate(File certFile) {
+    this.certFile = certFile;
+  }
+
+  public File getCertFile() {
+    return this.certFile;
   }
 }

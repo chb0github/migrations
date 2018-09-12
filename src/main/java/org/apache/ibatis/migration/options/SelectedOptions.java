@@ -30,6 +30,7 @@ public class SelectedOptions {
   private boolean help;
   private boolean quiet;
   private boolean color;
+  private String key;
 
   public boolean isQuiet() {
     return quiet;
@@ -113,5 +114,13 @@ public class SelectedOptions {
 
   public void setHelp(boolean aHelp) {
     help = aHelp;
+  }
+
+  public void setKey(String key) {
+    this.key = key;
+  }
+
+  public String getKey() {
+    return key;
   }
 }

@@ -19,8 +19,7 @@ import static org.apache.ibatis.migration.utils.Util.isOption;
 
 import java.io.File;
 
-public enum OptionsParser {
-  ;
+public final class OptionsParser {
 
   public static SelectedOptions parse(String[] args) {
     final SelectedOptions selectedOptions = new SelectedOptions();
@@ -73,6 +72,9 @@ public enum OptionsParser {
           break;
         case FORCE:
           options.setForce(true);
+          break;
+        case KEY:
+          options.setKey(argParts[1]);
           break;
         case TRACE:
           options.setTrace(true);

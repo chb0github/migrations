@@ -82,6 +82,7 @@ public final class UpOperation extends DatabaseOperation {
       hookBindings.put("args", Collections.unmodifiableList(asList(options.getParams())));
       hookBindings.put("quiet", options.isQuiet());
       hookBindings.put("printStream", printStream);
+      hookBindings.put("key", options.getKey());
 
       Reader scriptReader = null;
       Reader onAbortScriptReader = null;

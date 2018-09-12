@@ -1,4 +1,4 @@
-/**
+/*
  *    Copyright 2010-2018 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,22 +13,15 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.migration.options;
+// Rhino has println(), but Nashorn does not.
+// Both has print(), but Nashorn's outputs newline.
+if (typeof println == 'undefined')
+	this.println = print;
 
-public enum Options {
-  PATH,
-  ENVPATH,
-  SCRIPTPATH,
-  DRIVERPATH,
-  HOOKPATH,
-  ENV,
-  FORCE,
-  KEY,
-  TRACE,
-  HELP,
-  TEMPLATE,
-  CERT,
-  IDPATTERN,
-  QUIET,
-  COLOR
-}
+println('HELLO_1');
+
+var SCRIPT_VAR = 1;
+println('SCRIPT_VAR=' + SCRIPT_VAR);
+
+println('');
+

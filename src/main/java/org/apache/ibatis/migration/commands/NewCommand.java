@@ -26,6 +26,7 @@ import java.util.Properties;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.migration.Change;
 import org.apache.ibatis.migration.MigrationException;
+import org.apache.ibatis.migration.Migrator;
 import org.apache.ibatis.migration.hook.Hook;
 import org.apache.ibatis.migration.options.SelectedOptions;
 
@@ -72,7 +73,7 @@ public final class NewCommand extends BaseCommand {
     try {
       templateReader = Resources.getResourceAsReader(def);
     } catch (IOException e) {
-      throw new MigrationException(String.format("Default template %s can't be found?! ", def), e);
+      throw new MigrationException(String.format("Default 'new' template %s can't be found?! ", def), e);
     }
     try {
       String template = getTemplateFile();
@@ -93,9 +94,9 @@ public final class NewCommand extends BaseCommand {
     if (options.getTemplate() != null) {
       template = options.getTemplate();
     } else {
-      String customConfiguredTemplate = getPropertyOption(CUSTOM_NEW_COMMAND_TEMPLATE_PROPERTY);
+      String customConfiguredTemplate = Migrator.getPropertyOption(CUSTOM_NEW_COMMAND_TEMPLATE_PROPERTY);
       if (customConfiguredTemplate != null) {
-        template = migrationsHome() + "/" + customConfiguredTemplate;
+        template = Migrator.migrationsHome() + "/" + customConfiguredTemplate;
       }
     }
     return template;

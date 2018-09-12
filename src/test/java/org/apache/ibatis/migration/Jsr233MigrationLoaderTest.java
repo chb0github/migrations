@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
@@ -153,7 +152,7 @@ public class Jsr233MigrationLoaderTest {
     Jsr233MigrationLoader loader = mkloader("default");
     Change c = new Change(BigDecimal.ONE, null, "change", "00001_change.sql");
     Reader reader = loader.getScriptReader(c);
-    String actual = new CommentStrippingReader(reader).readLine();
+    String actual = new BufferedReader(reader).readLine();
     String expected = String.format("select '%s' as id;", c.getId());
     assertEquals(expected, actual);
   }
@@ -163,7 +162,7 @@ public class Jsr233MigrationLoaderTest {
     Jsr233MigrationLoader loader = mkloader("default");
 
     List<Reader> readers = loader.getBootstrapReaders();
-    String actual = new CommentStrippingReader(readers.get(0)).readLine();
+    String actual = new BufferedReader(readers.get(0)).readLine();
     String expected = "select 'bootstrap' as id from bootstrap;";
     assertEquals(expected, actual);
   }
@@ -172,25 +171,9 @@ public class Jsr233MigrationLoaderTest {
   public void getOnAbortReaderNoScript() throws Exception {
     Jsr233MigrationLoader loader = mkloader("default");
     Reader reader = loader.getOnAbortReader(this.change);
-    String actual = new CommentStrippingReader(reader).readLine();
+    String actual = new BufferedReader(reader).readLine();
     String expected = "select 'onabort' as id from onabort;";
     assertEquals(expected, actual);
   }
 
-  // This little trick is necessary as a maven plugin sticks headers on all of our files.
-  private static class CommentStrippingReader extends BufferedReader {
-
-    public CommentStrippingReader(Reader in) {
-      super(in);
-    }
-
-    @Override
-    public String readLine() throws IOException {
-      String line = null;
-      do {
-        line = super.readLine();
-      } while (line != null && (line.startsWith("--") || line.isEmpty()));
-      return line;
-    }
-  }
 }
